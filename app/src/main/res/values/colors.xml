@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#e0e0e0</color>
+    <color name="colorPrimaryMedium">#464646</color>
+    <color name="colorPrimaryDark">#313131</color>
+    <color name="colorAccent">#ffffff</color>
+    <color name="navigationBarColor">#000000</color>
+    <color name="themeColor0">#117de2</color>
+    <color name="themeColor1">#e91e63</color>
+    <color name="themeColor2">#e65100</color>
+
+    <array name="themeColors">
+        <item>@color/themeColor0</item>
+        <item>@color/themeColor1</item>
+        <item>@color/themeColor2</item>
+    </array>
+</resources>

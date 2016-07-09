@@ -1,0 +1,50 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/themeColor0</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="android:textViewStyle">@style/RobotoTextViewStyle</item>
+        <item name="buttonStyle">@style/RobotoButtonStyle</item>
+
+    </style>
+    <style name="AppTheme.L" parent="AppTheme">
+        <item name="android:windowBackground">@drawable/background_splash</item>
+    </style>
+    <style name="AppTheme.Theme0"  parent="AppTheme">
+        <item name="colorPrimary">@color/themeColor0</item>
+    </style>
+    <style name="AppTheme.Theme1"  parent="AppTheme">
+        <item name="colorPrimary">@color/themeColor1</item>
+    </style>
+    <style name="AppTheme.Theme2"  parent="AppTheme">
+        <item name="colorPrimary">@color/themeColor2</item>
+    </style>
+    <style name="AppTheme.L.Theme0"  parent="AppTheme.L">
+        <item name="colorPrimary">@color/themeColor0</item>
+    </style>
+    <style name="AppTheme.L.Theme1"  parent="AppTheme.L">
+        <item name="colorPrimary">@color/themeColor1</item>
+    </style>
+    <style name="AppTheme.L.Theme2"  parent="AppTheme.L">
+        <item name="colorPrimary">@color/themeColor2</item>
+    </style>
+
+
+    <style name="RobotoTextViewStyle" parent="android:Widget.TextView">
+        <item name="android:fontFamily">sans-serif-light</item>
+    </style>
+
+    <style name="RobotoButtonStyle" parent="android:Widget.Holo.Button">
+        <item name="android:fontFamily">sans-serif-light</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+</resources>

@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="com.crosscharge.hitch.ScanActivity"
+    android:background="@color/colorPrimaryDark">
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/skipButton"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
+        android:src="@drawable/backicon"
+        android:layout_margin="20dp"
+        android:layout_alignParentTop="true"
+        app:elevation="4dp"
+        app:backgroundTint="@color/colorPrimaryDark"
+
+        android:onClick="backPressed"/>
+
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1.2"
+        android:orientation="vertical"
+        android:gravity="bottom">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        <ViewFlipper
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/viewFlipper">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/taptoAddLayout">
+
+                <TextView
+                    android:id="@+id/tapText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="45dp"
+                    android:text="TAP"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/colorAccent"/>
+                <TextView
+                    android:id="@+id/toAddaHitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="18dp"
+                    android:textSize="13dp"
+                    android:text="to add a Hitch"
+                    android:layout_below="@+id/tapText"
+                    android:layout_centerHorizontal="true"
+                    android:textColor="@color/colorAccent"/>
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/noDevicesFoundLayout">
+
+                <TextView
+                    android:id="@+id/blank"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:textSize="45dp"
+                    android:text=""
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/colorAccent"/>
+                <TextView
+                    android:id="@+id/noDevicesFoundText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="13dp"
+                    android:text="No Devices Found. Try Again."
+                    android:layout_below="@+id/blank"
+                    android:layout_centerHorizontal="true"
+                    android:textColor="@color/colorAccent"/>
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/DevicesFoundLayout">
+
+                <TextView
+                    android:id="@+id/tagFoundText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="45dp"
+                    android:text="TAP"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/colorAccent"/>
+                <TextView
+                    android:id="@+id/onHitchText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="13dp"
+                    android:text="on HITCH TAG"
+                    android:layout_below="@+id/tagFoundText"
+                    android:layout_centerHorizontal="true"
+                    android:textColor="@color/colorAccent"/>
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/blankLayout">
+
+                <TextView
+                    android:id="@+id/blank1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:textSize="45dp"
+                    android:text=""
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="10dp"
+                    android:textColor="@color/colorAccent"/>
+                <TextView
+                    android:id="@+id/blank2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="13dp"
+                    android:text=""
+                    android:layout_below="@+id/blank1"
+                    android:layout_centerHorizontal="true"
+                    android:textColor="@color/colorAccent"/>
+            </RelativeLayout>
+        </ViewFlipper>
+        </RelativeLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="5"
+        android:gravity="center">
+        <ViewSwitcher
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/viewSwitcher"
+            >
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        <com.skyfishjy.library.RippleBackground
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/content"
+            app:rb_color="?attr/colorPrimary"
+            app:rb_radius="32dp"
+            app:rb_rippleAmount="4"
+            app:rb_duration="3000"
+            app:rb_scale="6"
+            >
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/hitchsearch"
+            android:id="@+id/scanButton"
+           />
+
+        </com.skyfishjy.library.RippleBackground>
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/hitchinlogo"
+                android:id="@+id/innerLogo"
+                android:tint="?attr/colorPrimary"
+                />
+        </FrameLayout>
+            <ListView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/scanListView"
+                android:layout_below="@+id/scanButton"
+                android:layout_centerHorizontal="true"
+                android:layout_marginStart="85dp"/>
+        </ViewSwitcher>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1.2"
+        android:orientation="vertical">
+
+
+
+    </LinearLayout>
+
+</LinearLayout>
+
+
+</RelativeLayout>
