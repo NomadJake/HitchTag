@@ -48,11 +48,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.kyleduo.switchbutton.SwitchButton;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 
 
@@ -89,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
     DbHelper helper;
 
     //Tag Images path
+    public String pet_dp;
     File tagImagePath = new File("/sdcard/Hitch/Images");
     String path = Environment.getRootDirectory()
             + File.separator;
@@ -105,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
         //record the fact that user has added atleast one tag
         settings.edit().putBoolean("user_first_time", false).commit();
         //Tag Images create Directory
+
 
         bottomLinearLayout=(LinearLayout)findViewById(R.id.bottomLinearLayout);
         pawImage=(ImageView)findViewById(R.id.pawImage);
@@ -124,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
         trainButton=(FloatingActionButton)findViewById(R.id.trainbutton);
         refreshButton=(FloatingActionButton)findViewById(R.id.refresh);
         tagSettingsButton=(FloatingActionButton)findViewById(R.id.tagSettings);
-        tagRange=(SwitchButton)findViewById(R.id.rangeSwitch);
+//        tagRange=(SwitchButton)findViewById(R.id.rangeSwitch);
 
         //change 3 to the number of tags added
         //if only 1 hitch tag then do not add Tab else add
@@ -161,10 +167,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-
-
-
             }
 
             @Override
@@ -187,6 +189,25 @@ public class MainActivity extends AppCompatActivity {
 
 
         tagImage=(CircleImageView)findViewById(R.id.tag_image);
+        SharedPreferences sharedPreferences =  PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext());
+        String imageResource = sharedPreferences.getString("pet_image_name",null);
+        if(imageResource != null){
+            pet_dp = imageResource;
+        }
+        FileInputStream fis = null;
+
+        if(pet_dp != null){
+            File file = new File(pet_dp);
+            try {
+                fis = new FileInputStream(file);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
+            Bitmap myBitmap = BitmapFactory.decodeStream(fis);
+            tagImage.setImageBitmap(myBitmap);
+
+        }
         tagImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -384,15 +405,10 @@ public class MainActivity extends AppCompatActivity {
 
                 {
 
-                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-                    File f = new File(android.os.Environment.getExternalStorageDirectory(), "temp.jpg");
-
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
-                    //pic = f;
-
-                    startActivityForResult(intent, 1);
-
+                    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                        startActivityForResult(takePictureIntent, 1);
+                    }
 
                 }
 
@@ -403,8 +419,6 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new   Intent(Intent.ACTION_PICK,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 
                     startActivityForResult(intent, 2);
-
-
 
                 }
 
@@ -423,9 +437,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
@@ -433,72 +444,27 @@ public class MainActivity extends AppCompatActivity {
         if (resultCode == RESULT_OK) {
 
             if (requestCode == 1) {
-                //h=0;
-                File f = new File(Environment.getExternalStorageDirectory().toString());
 
-                for (File temp : f.listFiles()) {
-
-                    if (temp.getName().equals("temp.jpg")) {
-
-                        f = temp;
-                        File photo = new File(Environment.getExternalStorageDirectory(), "temp.jpg");
-                        //pic = photo;
-                        break;
-
-                    }
-
-                }
 
                 try {
 
+
+
                     Bitmap bitmap;
 
-                    BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
 
-
-
-                    bitmap = BitmapFactory.decodeFile(f.getAbsolutePath(),
-
-                            bitmapOptions);
+                    if(data.getData()==null){
+                        bitmap = (Bitmap)data.getExtras().get("data");
+                    }else{
+                        bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), data.getData());
+                    }
 
 
 
                     tagImage.setImageBitmap(bitmap);
+                    storeImage(bitmap);
 
 
-
-                    //p = path;
-
-                    f.delete();
-
-                    OutputStream outFile = null;
-
-                    File file = new File(path, String.valueOf(System.currentTimeMillis()) + ".jpg");
-
-                    try {
-
-                        outFile = new FileOutputStream(file);
-
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 85, outFile);
-                        //pic=file;
-                        outFile.flush();
-
-                        outFile.close();
-
-
-                    } catch (FileNotFoundException e) {
-
-                        e.printStackTrace();
-
-                    } catch (IOException e) {
-
-                        e.printStackTrace();
-
-                    } catch (Exception e) {
-
-                        e.printStackTrace();
-
-                    }
 
                 } catch (Exception e) {
 
@@ -527,24 +493,8 @@ public class MainActivity extends AppCompatActivity {
                 if(resultCode == Activity.RESULT_OK){
                     Bundle extras = data.getExtras();
                     Bitmap selectedBitmap = extras.getParcelable("data");
-                    FileOutputStream out = null;
-                    try {
+                    storeImage(selectedBitmap);
 
-                        out = new FileOutputStream(path);
-                        selectedBitmap.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
-                        // PNG is a lossless format, the compression factor (100) is ignored
-                    } catch (Exception e) {
-                        Log.d("blah","blah");
-                        e.printStackTrace();
-                    } finally {
-                        try {
-                            if (out != null) {
-                                out.close();
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
                     // Set The Bitmap Data To ImageView
                     tagImage.setImageBitmap(selectedBitmap);
 
@@ -771,5 +721,49 @@ public class MainActivity extends AppCompatActivity {
             Toast toast = Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT);
             toast.show();
         }
+    }
+
+    private void storeImage(Bitmap image) {
+        File pictureFile = getOutputMediaFile();
+        if (pictureFile == null) {
+            Log.d(TAG,
+                    "Error creating media file, check storage permissions: ");// e.getMessage());
+            return;
+        }
+        try {
+            FileOutputStream fos = new FileOutputStream(pictureFile);
+            image.compress(Bitmap.CompressFormat.PNG, 90, fos);
+            fos.close();
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "File not found: " + e.getMessage());
+        } catch (IOException e) {
+            Log.d(TAG, "Error accessing file: " + e.getMessage());
+        }
+    }
+
+    private  File getOutputMediaFile(){
+        // might need  Environment.getExternalStorageState()
+        File mediaStorageDir = new File(Environment.getExternalStorageDirectory()
+                + "/Android/data/"
+                + getApplicationContext().getPackageName()
+                + "/Files");
+        // Create the storage directory if it does not exist
+        if (! mediaStorageDir.exists()){
+            if (! mediaStorageDir.mkdirs()){
+                return null;
+            }
+        }
+        // Create a media file name
+        String timeStamp = new SimpleDateFormat("ddMMyyyy_HHmm").format(new Date());
+        File mediaFile;
+        String mImageName="MI_"+ timeStamp +".jpg";
+        pet_dp = mediaStorageDir.getPath() + File.separator + mImageName;
+        SharedPreferences sharedPreferences= PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences.edit()
+                .putString("pet_image_name",pet_dp)
+                .apply();
+        mediaFile = new File(pet_dp);
+        Log.d("fileSaved",pet_dp);
+        return mediaFile;
     }
 }
