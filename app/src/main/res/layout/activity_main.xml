@@ -262,7 +262,17 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="0.85"></LinearLayout>
+                android:layout_weight="0.85">
+
+                <Button
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Stop"
+                    android:onClick="stopAll"
+                    android:backgroundTint="@color/themeColor0"
+                    android:id="@+id/buttonStopAll" />
+            </LinearLayout>
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
@@ -367,7 +377,7 @@
                 android:focusable="true"
                 android:src="@drawable/track"
                 app:elevation="2dp"
-                app:backgroundTint="?attr/colorPrimary"
+                app:backgroundTint="@color/themeColor0"
                 android:layout_gravity="center"
                 android:onClick="onTrackButtonPressed"/>
             </LinearLayout>

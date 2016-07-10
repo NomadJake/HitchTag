@@ -32,6 +32,7 @@ import android.provider.MediaStore;
 import android.provider.SyncStateContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
@@ -42,6 +43,8 @@ import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -64,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private ImageView pawImage;
+    private Button stopAll;
     private String TAG = MainActivity.class.getName();
     // tab related
     TextView tagName, tagStatus;
@@ -94,9 +98,6 @@ public class MainActivity extends AppCompatActivity {
 
     //Tag Images path
     public String pet_dp;
-    File tagImagePath = new File("/sdcard/Hitch/Images");
-    String path = Environment.getRootDirectory()
-            + File.separator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
         setStartTheme(Integer.parseInt(helper.getHitchTagThemeColors().get(0)));
         //setTheme(R.style.AppTheme_L_ThemePink);
         super.onCreate(savedInstanceState);
+        stopAll = (Button)findViewById(R.id.buttonStopAll);
 
         setContentView(R.layout.activity_main);
         SharedPreferences settings = getSharedPreferences(Constants.PREFS_NAME, 0);
@@ -141,6 +143,52 @@ public class MainActivity extends AppCompatActivity {
             tabLayout.addTab(tabLayout.newTab().setText(tagList.get(i).getName()));
            // tagName.setText(tagList.get(i).getName());
         }
+
+        tagRange.setChecked(true);
+        tagRange.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                HitchTag.longRange = false;
+                if(isChecked){
+                    HitchTag.longRange = true;
+                }
+
+//                stopAlarm();
+//                Toast.makeText(getApplicationContext(),"Tracking mode changed",Toast.LENGTH_LONG).show();
+//                if (isChecked){
+//
+//                    handler.postDelayed(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            scanLeDevice(true);
+//                        }
+//                    },Constants.BLE.SCAN_PERIOD);
+//                    scanLeDevice(true);
+//                    LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(new BroadcastReceiver() {
+//                        @Override
+//                        public void onReceive(Context context, Intent intent) {
+//                            tagStatusImage.setBackgroundResource(R.drawable.nearby_statusicon);
+//                        }
+//                    }, new IntentFilter("available"));
+//
+//                    LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(new BroadcastReceiver() {
+//                        @Override
+//                        public void onReceive(Context context, Intent intent) {
+//                            playAlarm();
+//                            tagStatusImage.setBackgroundResource(R.drawable.stat_unavailable);
+//                        }
+//                    }, new IntentFilter("unavailable"));
+////                    HitchTag.lost = true;
+////                    HitchTag.rssiCutoff = -90;
+////                    tagList.get(pos).trackHitchTagLongRange();
+//
+//
+//                }else {
+//                    HitchTag.lost = false;
+//                }
+//                if (!tagList.get(pos).connected()) tagList.get(pos).playAlarm();
+            }
+        });
 
 
 
@@ -259,7 +307,7 @@ public class MainActivity extends AppCompatActivity {
 
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-            Bitmap bitmap = BitmapFactory.decodeFile(path, options);
+//            Bitmap bitmap = BitmapFactory.decodeFile(path, options);
            // tagImage.setImageBitmap(bitmap);
             tabLayout.getTabAt(selectedTag).setText(helper.getHitchTagList().get(selectedTag).getName());
         //Log.d(TAG, );
@@ -326,11 +374,14 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                         if(tagList.get(pos).deviceAvailable()){
+                            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent("available"));
+
                             tagStatus.setText("Nearby");
                             tagStatusImage.setBackgroundResource(R.drawable.nearby_statusicon);
                         }
                         else{
                             // disable this
+                            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent("unavailable"));
                             tagStatus.setText("N.A.");
                             tagStatusImage.setBackgroundResource(R.drawable.stat_unavailable);
                         }
@@ -526,11 +577,13 @@ public class MainActivity extends AppCompatActivity {
 
     public void onTrackButtonPressed(View v) {
         // here for track button onclick to do
+        HitchTag.trakHitch = true;
         tagList.get(pos).trackHitchTag();
     }
 
     public void onFindButtonPressed(View v) {
         // here for find button onclick to do
+        HitchTag.trakHitch = true;
         tagList.get(pos).findHitchTag();
     }
 
@@ -765,5 +818,10 @@ public class MainActivity extends AppCompatActivity {
         mediaFile = new File(pet_dp);
         Log.d("fileSaved",pet_dp);
         return mediaFile;
+    }
+
+    public void stopAll(){
+        tagList.get(pos).stopAlarm();
+        scanLeDevice(true);
     }
 }

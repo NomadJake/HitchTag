@@ -11,7 +11,7 @@ public class Constants {
 
     // BLE Constants
     public interface BLE {
-        int SCAN_PERIOD = 7000;
+        int SCAN_PERIOD = 12000;
         int REQUEST_ENABLE_BT = 64;
 
         int COUNT_RANGE = 3;

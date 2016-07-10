@@ -7,9 +7,12 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Message;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.util.UUID;
@@ -22,6 +25,9 @@ public class HitchTag {
     Context context;
     Message message;
 
+    public static int rssiCutoff = -75;
+    public static boolean longRange = false;
+
     private BluetoothGatt deviceGatt;
 //    private BluetoothGattCallback trackCallBack;
     private BluetoothDevice device;
@@ -29,6 +35,11 @@ public class HitchTag {
     private String name, address;
     private int userConnStatus;
     private int userSetRange;
+
+    public static boolean trakHitch = false;
+    public static boolean kill = false;
+
+
 
     public HitchTag(Context context, BluetoothDevice device){
         this.context = context;
@@ -119,6 +130,8 @@ public class HitchTag {
         context.startService(startIntent);
     }
     public void stopAlarm(){
+
+
         sendStringMessage(Constants.STRINGMESSAGE.ALARM, "b");
 
         Intent stopIntent = new Intent(context, AlarmService.class);
@@ -185,10 +198,21 @@ public class HitchTag {
         new FindThread().start();
     }
 
+    public void trackHitchTagLongRange(){
+        lastOp = Constants.INTMESSAGE.TRACK;
+        // thread
+        new TrackHitchTagLongThread().start();
+    }
+
     public void trackHitchTag(){
         lastOp = Constants.INTMESSAGE.TRACK;
         // thread
-        new TrackThread().start();
+        if(longRange = false){
+            new TrackThread().start();
+        }else {
+            Log.d("longRange","longRange");
+            new TrackHitchTagLongThread().start();
+        }
     }
 
     public void trainHitchTag(){
@@ -249,7 +273,7 @@ public class HitchTag {
             else if(lastOp == Constants.INTMESSAGE.TRACK){
                 Log.d("TRACK", "rssi = " + rssi);
                 sendIntMessage(Constants.INTMESSAGE.TRACK, rssi);
-                if(rssi < -75 || rssi == 0){
+                if(rssi < -90 || rssi == 0){
                     trackCnt --;
                     if(trackCnt == 0){
                         playAlarm();
@@ -270,6 +294,29 @@ public class HitchTag {
             }
         }
     };
+
+    public class TrackHitchTagLongThread extends Thread{
+        @Override
+        public void run() {
+            super.run();
+
+            while(trakHitch){
+                if(!connected()){
+                    playAlarm();
+                }else {
+                    stopAlarm();
+                }
+                if (kill == true) stopAlarm();
+                try {
+                    Thread.currentThread().sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+
+            }
+        }
+    }
 
     public class FindThread extends Thread{
         @Override
