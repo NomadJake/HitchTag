@@ -24,9 +24,7 @@
             android:name=".MainActivity"
             android:label="@string/title_activity_main2"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.Theme0">
-
-        </activity>
+            android:theme="@style/AppTheme.Theme0"></activity>
         <activity
             android:name=".ScanActivity"
             android:screenOrientation="portrait" />
@@ -41,15 +39,18 @@
         <activity
             android:name=".GalleryUtil"
             android:screenOrientation="portrait" />
-        <activity android:name=".StartActivity"
-                    android:theme="@style/AppTheme.L.Theme0"
-            >
+        <activity
+            android:name=".StartActivity"
+            android:theme="@style/AppTheme.L.Theme0">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".fService"></service>
     </application>
 
 </manifest>

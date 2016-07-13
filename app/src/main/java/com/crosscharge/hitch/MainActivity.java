@@ -66,7 +66,9 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class MainActivity extends AppCompatActivity {
 
 
+    public Boolean trackingModeLong = true;
     private ImageView pawImage;
+    public Button startTrackingServiceButton;
     private Button stopAll;
     private String TAG = MainActivity.class.getName();
     // tab related
@@ -85,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView hitchLogoTop;
 
 
+
     // bluetooth
     BluetoothAdapter bluetoothAdapter;
     BroadcastReceiver bleStateReceiver;
@@ -101,6 +104,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        startTrackingServiceButton = (Button)findViewById(R.id.trackingServiceButton);
+
+
         helper = new DbHelper(this);
         setStartTheme(Integer.parseInt(helper.getHitchTagThemeColors().get(0)));
         //setTheme(R.style.AppTheme_L_ThemePink);
@@ -149,49 +156,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 HitchTag.longRange = false;
+                trackingModeLong = false;
                 if(isChecked){
                     HitchTag.longRange = true;
+                    trackingModeLong = true;
                 }
 
-//                stopAlarm();
-//                Toast.makeText(getApplicationContext(),"Tracking mode changed",Toast.LENGTH_LONG).show();
-//                if (isChecked){
-//
-//                    handler.postDelayed(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            scanLeDevice(true);
-//                        }
-//                    },Constants.BLE.SCAN_PERIOD);
-//                    scanLeDevice(true);
-//                    LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(new BroadcastReceiver() {
-//                        @Override
-//                        public void onReceive(Context context, Intent intent) {
-//                            tagStatusImage.setBackgroundResource(R.drawable.nearby_statusicon);
-//                        }
-//                    }, new IntentFilter("available"));
-//
-//                    LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(new BroadcastReceiver() {
-//                        @Override
-//                        public void onReceive(Context context, Intent intent) {
-//                            playAlarm();
-//                            tagStatusImage.setBackgroundResource(R.drawable.stat_unavailable);
-//                        }
-//                    }, new IntentFilter("unavailable"));
-////                    HitchTag.lost = true;
-////                    HitchTag.rssiCutoff = -90;
-////                    tagList.get(pos).trackHitchTagLongRange();
-//
-//
-//                }else {
-//                    HitchTag.lost = false;
-//                }
-//                if (!tagList.get(pos).connected()) tagList.get(pos).playAlarm();
             }
         });
-
-
-
 
        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
 
@@ -298,6 +270,16 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter bleStateFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         bleStateFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(bleStateReceiver, bleStateFilter); // Don't forget to unregister during onDestroy
+//        startTrackingServiceButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent serviceIntent = new Intent(getApplication(),fService.class);
+//                serviceIntent.putExtra("device",tagList.get(pos).getDevice());
+//                serviceIntent.putExtra("deviceaddress",tagList.get(pos).getAddress());
+//                serviceIntent.setAction("trackingService");
+//                startService(serviceIntent);
+//            }
+//        });
     }
 
     @Override
@@ -820,8 +802,21 @@ public class MainActivity extends AppCompatActivity {
         return mediaFile;
     }
 
-    public void stopAll(){
+    public void stopAll(View v){
         tagList.get(pos).stopAlarm();
         scanLeDevice(true);
+    }
+
+    public void serviceStart(View v){
+
+        Intent serviceIntent = new Intent(MainActivity.this,fService.class);
+        serviceIntent.putExtra("device",tagList.get(pos).getDevice());
+        serviceIntent.putExtra("deviceaddress",tagList.get(pos).getAddress());
+        serviceIntent.putExtra("trackingModeLong",trackingModeLong);
+        serviceIntent.setAction("fore");
+//        serviceIntent.setAction("trackingService");
+        Log.d("starting","starting service");
+        startService(serviceIntent);
+
     }
 }

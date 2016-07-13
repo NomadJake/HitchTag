@@ -103,7 +103,7 @@ public class AlarmService extends Service {
             cnt = 0;
         }
         else if (intent.getAction().equals(Constants.NOTIFICATION.STOPFOREGROUND_ACTION)) {
-            Log.i(TAG, "Received Stop Foreground Intent");
+            Log.i(TAG, "Received Stop Foreground Intent - alarm");
             cnt = 0;
             stopAlarmService();
         }
