@@ -77,18 +77,18 @@ public class AlarmService extends Service {
 
             Bitmap icon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
 
-            Notification notification = new NotificationCompat.Builder(this)
-                    .setContentTitle(getResources().getString(R.string.app_name))
-                    .setTicker("Tag Lost")
-                    .setContentText("Alarm")
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
-                    .setContentIntent(pendingIntent)
-                    .setOngoing(true)
-                    .addAction(android.R.drawable.ic_media_previous,    "Previous",     ppreviousIntent)
-                    .addAction(android.R.drawable.ic_media_play,        "Play",         pplayIntent)
-                    .addAction(android.R.drawable.ic_media_next,        "Next",         pnextIntent).build();
-            startForeground(Constants.NOTIFICATION.ALARM_SERVICE, notification);
+//            Notification notification = new NotificationCompat.Builder(this)
+//                    .setContentTitle(getResources().getString(R.string.app_name))
+//                    .setTicker("Tag Lost")
+//                    .setContentText("Alarm")
+//                    .setSmallIcon(R.mipmap.ic_launcher)
+//                    .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
+//                    .setContentIntent(pendingIntent)
+//                    .setOngoing(true)
+//                    .addAction(android.R.drawable.ic_media_previous,    "Previous",     ppreviousIntent)
+//                    .addAction(android.R.drawable.ic_media_play,        "Play",         pplayIntent)
+//                    .addAction(android.R.drawable.ic_media_next,        "Next",         pnextIntent).build();
+//            startForeground(Constants.NOTIFICATION.ALARM_SERVICE, notification);
         }
         else if (intent.getAction().equals(Constants.NOTIFICATION.PREV_ACTION)) {
             Log.i(TAG, "Clicked Previous");
@@ -111,7 +111,7 @@ public class AlarmService extends Service {
     }
 
     private void stopAlarmService(){
-        stopForeground(true);
+//        stopForeground(true);
         stopSelf();
     }
 

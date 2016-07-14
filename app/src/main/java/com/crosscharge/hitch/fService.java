@@ -1,6 +1,7 @@
 package com.crosscharge.hitch;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -12,6 +13,7 @@ import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.Ringtone;
@@ -34,14 +36,17 @@ public class fService extends Service{
     BluetoothDevice device;
     private BluetoothGatt deviceGatt;
     Context context;
-    HitchTag thisTag;
     Boolean keepTracking = true;
     Boolean kill = false;
-    String deviceaddress;
     Boolean trackingModeLong;
+    NotificationManager notificationManager;
+    Notification stateHolderNotification;
+    NotificationCompat.Builder builder;
+    TrackThread persistentThread;
 
 
-    String TAG = "Service";
+
+    String TAG = "fServiceLOG";
     String mode;
 
 
@@ -63,22 +68,19 @@ public class fService extends Service{
 
         context = getApplicationContext();
 
+
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mReceiver);
+    }
+
+
+
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        device =(BluetoothDevice) intent.getExtras().get("device");
-        if(device == null){
-            Log.d("service","stopping service : device null");
-            super.stopSelf();
-        }
-//        deviceaddress = (String)intent.getExtras().get("deviceaddress");
-        trackingModeLong = (Boolean)intent.getExtras().getBoolean("trackingModeLong");
-        if(trackingModeLong){
-            mode = "Wide coverage";
-        }else {
-            mode = "Short coverage";
-        }
 
         Uri notificationSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notificationSound);
@@ -87,22 +89,43 @@ public class fService extends Service{
 
         if (intent.getAction().equals("fore")) {
 
+            keepTracking = true;
+
+            device =(BluetoothDevice) intent.getExtras().get("device");
+            if(device == null){
+                Log.d(TAG,"stopping service : device null");
+                super.stopSelf();
+            }
+            trackingModeLong = (Boolean)intent.getExtras().getBoolean("trackingModeLong");
+            if(trackingModeLong){
+                mode = "Wide coverage";
+            }else {
+                mode = "Short coverage";
+            }
+
             if(deviceGatt == null){
                 connect();
             }
 
             if (trackingModeLong) {
-                new TrackHitchTagLongThread().start();
-                Log.d("thread","started tracking thread long mode");
+                Log.d(TAG,"started tracking thread long mode");
+
+                IntentFilter filter1 = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
+                IntentFilter filter2 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+                IntentFilter filter3 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                this.registerReceiver(mReceiver, filter1);
+                this.registerReceiver(mReceiver, filter2);
+                this.registerReceiver(mReceiver, filter3);
 
 
 
             } else {
-                new TrackThread().start();
-                Log.d("thread","started tracking thread near mode");
+                persistentThread = new TrackThread();
+                persistentThread.start();
+                Log.d(TAG,"started tracking thread near mode");
 
             }
-            Log.i("trackingService", "Received Start Foreground Intent ");
+            Log.d(TAG, "Received Start Foreground Intent ");
 
 
             Intent notificationIntent = new Intent(this, MainActivity.class);
@@ -118,77 +141,104 @@ public class fService extends Service{
             startTrackingIntent.putExtra("trackingModeLong",trackingModeLong);
             startTrackingIntent.setAction("start");
             PendingIntent pstartTrackingIntent = PendingIntent.getService(this, 0,
-                    startTrackingIntent, 0);
+                    startTrackingIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent stopTrackingIntent = new Intent(this, fService.class);
             stopTrackingIntent.putExtra("device",device);
             stopTrackingIntent.putExtra("trackingModeLong",trackingModeLong);
-            stopTrackingIntent.setAction("fore");
+            stopTrackingIntent.setAction("stop");
             PendingIntent pstopTrackingIntent = PendingIntent.getService(this, 0,
-                    stopTrackingIntent, 0);
+                    stopTrackingIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent killService = new Intent(this, fService.class);
-            stopTrackingIntent.setAction("kill");
+            killService.putExtra("device",device);
+            killService.setAction("kill");
             PendingIntent pkillService = PendingIntent.getService(this, 0,
-                    killService, 0);
+                    killService, PendingIntent.FLAG_UPDATE_CURRENT);
 
 
-
+            notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             Bitmap icon = BitmapFactory.decodeResource(getResources(),
                     R.drawable.hitchlogo);
 
-            Notification notification = new NotificationCompat.Builder(this)
-                    .setContentTitle("Hitch")
-                    .setTicker("Hitching")
-                    .setContentText("Tracking Mode : " + mode)
-                    .setSmallIcon(R.drawable.hitchinlogo)
-                    .setLargeIcon(Bitmap.createScaledBitmap(icon, 200, 200, false))
-                    .setContentIntent(pendingIntent)
-                    .setOngoing(true)
-                    .addAction(android.R.drawable.ic_media_play, "start",
-                            pstartTrackingIntent)
-                    .addAction(android.R.drawable.ic_media_pause, "stop",
-                            pstopTrackingIntent)
-                    .addAction(android.R.drawable.ic_lock_power_off, "kill",
-                            pkillService).build();
+            builder = new NotificationCompat.Builder(context);
+
+            builder.setContentTitle("Hitch");
+            builder.setContentText("Tracking Mode : " + mode);
+            builder.setSmallIcon(R.drawable.hitchinlogo);
+            builder.setLargeIcon(Bitmap.createScaledBitmap(icon, 200, 200, false));
+            builder.setContentIntent(pendingIntent);
+            builder.setOngoing(true);
+            builder.addAction(android.R.drawable.ic_media_play,"start",pstartTrackingIntent);
+            builder.addAction(android.R.drawable.ic_media_pause, "stop",
+                    pstopTrackingIntent);
+            builder.addAction(android.R.drawable.ic_lock_power_off, "kill",
+                    pkillService);
+
+            builder.setPriority(Notification.PRIORITY_HIGH);
+            stateHolderNotification = builder.build();
+
+
+
             startForeground(101,
-                    notification);
+                    stateHolderNotification);
         } else if (intent.getAction().equals("start")) {
-            Log.i("trackingService", "Clicked start tracking");
+            Log.d(TAG, "restart service clicked");
             keepTracking = true;
+            builder.setContentText("Tracking Mode : " + mode);
+            IntentFilter filter1 = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
+            IntentFilter filter2 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+            IntentFilter filter3 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+            this.registerReceiver(mReceiver, filter1);
+            this.registerReceiver(mReceiver, filter2);
+            this.registerReceiver(mReceiver, filter3);
+
+            if(!trackingModeLong){
+                new TrackThread().start();
+            }
+
+            notificationManager.notify(101,builder.build());
+
+
 
         } else if (intent.getAction().equals("stop")) {
-            Log.i("trackingService", "Received Stop Foreground Intent");
+            Log.d(TAG, "pause tracking clicked");
+
+            device =(BluetoothDevice) intent.getExtras().get("device");
+            trackingModeLong = (Boolean)intent.getExtras().getBoolean("trackingModeLong");
+
+
             stopAlarm();
+            if (persistentThread != null) {
+                persistentThread.interrupt();
+            }
+            try {
+                persistentThread.stop();
+                unregisterReceiver(mReceiver);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+//            stopForeground(true);
             keepTracking = false;
-//            kill = true;
+            String pausedText = "Tracking Paused";
+            builder.setContentText(pausedText);
+            notificationManager.notify(101,builder.build());
 
         }else if (intent.getAction().equals("kill")) {
-            Log.d("kill", " kill service intent by user");
+            Log.d(TAG, " kill service intent by user");
+            disconnect();
+            stopForeground(true);
             stopSelf();
         }
         return START_STICKY;
     }
 
-//    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-//        public void onReceive (Context context, Intent intent) {
-//            String action = intent.getAction();
-//
-//            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-//                if(intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1)
-//                        == BluetoothAdapter.STATE_OFF) {
-//
-//                }
-//            }
-//
-//        }
-//
-//    };
+
+
 
     private boolean enableBLE(){
         boolean ret = true;
-        // Ensures Bluetooth is available on the device and it is enabled. If not,
-        // displays a dialog requesting user permission to enable Bluetooth.
+
         if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
 
             Log.d(TAG, "BLE disabled.");
@@ -199,6 +249,36 @@ public class fService extends Service{
         }
         return ret;
     }
+
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                //Device found
+            }
+            else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
+                //Device is now connected
+            }
+            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                //Done searching
+            }
+            else if (BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED.equals(action)) {
+                //Device is about to disconnect
+
+            }
+            else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                //Device has disconnected
+
+                if (trackingModeLong) {
+                    playAlarm();
+                }
+
+            }
+        }
+    };
 
     public boolean deviceAvailable(){
         return this.device != null;
@@ -240,7 +320,7 @@ public class fService extends Service{
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            Log.d("service", gatt.toString() + ", " + status);
+            Log.d(TAG, gatt.toString() + ", " + status);
         }
 
         @Override
@@ -248,7 +328,7 @@ public class fService extends Service{
 
             super.onReadRemoteRssi(gatt, rssi, status);
             if(false){
-                Log.d("FIND", "rssi = " + rssi);
+                Log.d(TAG, "rssi = " + rssi);
                 int bars = 0;
                 if(rssi < -80 || rssi == 0){
                     bars = 0;
@@ -266,8 +346,8 @@ public class fService extends Service{
                     bars = 4;
                 }
             }
-            else if(true){
-                Log.d("TRACK", "rssi = " + rssi);
+            else if(keepTracking){
+                Log.d(TAG, "rssi = " + rssi);
                 if(rssi < -90 || rssi == 0){
                     trackCnt --;
                     if(trackCnt == 0){
@@ -289,7 +369,7 @@ public class fService extends Service{
                     trackCnt = 4;
                     stopAlarm();
                 }
-                Log.d("TRACK", "trackCnt = " + trackCnt);
+                Log.d(TAG, "trackCnt = " + trackCnt);
             }
         }
     };
@@ -307,7 +387,7 @@ public class fService extends Service{
             super.run();
 
             while(keepTracking){
-                Log.d("service", "i am tracking ... ");
+                Log.d(TAG, "i am tracking ... ");
                 if(!connected()){
                     playAlarm();
 

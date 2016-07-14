@@ -50,7 +50,12 @@
         </activity>
 
         <service
-            android:name=".fService"></service>
+            android:name=".fService">
+            <intent-filter> <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
+                <action android:name="android.bluetooth.device.action.ACL_DISCONNECT_REQUESTED" />
+                <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
