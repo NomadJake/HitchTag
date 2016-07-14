@@ -3,6 +3,9 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
@@ -59,6 +62,7 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.UUID;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -85,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
     //Buttons for theme change VAZE
     private FloatingActionButton findButton,trackButton,trainButton,refreshButton,tagSettingsButton;
     private ImageView hitchLogoTop;
+    public boolean tabSelectedFlag = false;
 
 
 
@@ -128,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
 
         tagList = helper.getHitchTagList();
+
 
        //tagName = (TextView) findViewById(R.id.tagName);
         tagRange = (SwitchButton) findViewById(R.id.rangeSwitch);
@@ -178,10 +184,14 @@ public class MainActivity extends AppCompatActivity {
 
                 pos = tab.getPosition();
                 selectedTag=pos;
+                tabSelectedFlag = true;
 
                 setCurrentTheme(Integer.parseInt(helper.getHitchTagThemeColors().get(selectedTag)));
-                tagList.get(pos).connect();
-               // Log.d("Theme color",tagList.get(pos).getThemeColor()+"");
+                if (!tagList.get(pos).connected()) {
+                    tagList.get(pos).connect();
+                    tagList.get(pos).writeCharasLevel(Constants.UUIDS.LINK_LOSS, Constants.ALERT_HIGH);
+                }
+                // Log.d("Theme color",tagList.get(pos).getThemeColor()+"");
                /*
 */
 
@@ -319,6 +329,35 @@ public class MainActivity extends AppCompatActivity {
         }
         return ret;
     }
+
+//    public boolean writeCharacteristic(){
+//
+//        BluetoothGatt mBluetoothGatt;
+//        mBluetoothGatt = tagList.get(pos).getDeviceGatt();
+//
+//
+//        if (mBluetoothGatt == null) {
+//            Log.e(TAG, "lost connection");
+//            return false;
+//        }
+//        BluetoothGattService Service = mBluetoothGatt.getService(UUID_ALARM);
+//        if (Service == null) {
+//            Log.e(TAG, "service not found!");
+//            return false;
+//        }
+//        BluetoothGattCharacteristic charac = Service
+//                .getCharacteristic(UUID_ALARM);
+//        if (charac == null) {
+//            Log.e(TAG, "char not found!");
+//            return false;
+//        }
+//
+//        byte[] value = new byte[1];
+//        value[0] = (byte) (21 & 0xFF);
+//        charac.setValue(value);
+//        boolean status = mBluetoothGatt.writeCharacteristic(charac);
+//        return status;
+//    }
 
     private void scanLeDevice(final boolean enable) {
         // true: start scan for 'SCAN_PERIOD' seconds
@@ -808,6 +847,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void serviceStart(View v){
+
+        tagList.get(pos).writeCharasLevel(Constants.UUIDS.LINK_LOSS, Constants.ALERT_HIGH);
 
         Intent serviceIntent = new Intent(MainActivity.this,fService.class);
         serviceIntent.putExtra("device",tagList.get(pos).getDevice());

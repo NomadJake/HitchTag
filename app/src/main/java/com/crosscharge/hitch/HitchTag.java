@@ -28,7 +28,11 @@ public class HitchTag {
     public static int rssiCutoff = -75;
     public static boolean longRange = false;
 
-    private BluetoothGatt deviceGatt;
+    public BluetoothGatt getDeviceGatt() {
+        return deviceGatt;
+    }
+
+    public BluetoothGatt deviceGatt;
 //    private BluetoothGattCallback trackCallBack;
     private BluetoothDevice device;
 
@@ -153,6 +157,30 @@ public class HitchTag {
     }
 
     public void writeAlertLevel(UUID serviceUUID, int level) {
+        if(deviceGatt == null){
+            Log.d("TAG", "no device connected");
+            return;
+        }
+        BluetoothGattService alertService = deviceGatt.getService(serviceUUID);
+        if(alertService == null) {
+            Log.d("TAG", "service not found!");
+            return;
+        }
+        BluetoothGattCharacteristic alertLevel = alertService.getCharacteristic(Constants.UUIDS.ALERT_LEVEL);
+        if(alertLevel == null) {
+            Log.d("TAG", "Alert Level charateristic not found!");
+            return;
+        }
+        alertLevel.setValue(level, BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+        deviceGatt.writeCharacteristic(alertLevel);
+        try {
+            Thread.currentThread().sleep(50);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void writeCharasLevel(UUID serviceUUID, int level) {
         if(deviceGatt == null){
             Log.d("TAG", "no device connected");
             return;

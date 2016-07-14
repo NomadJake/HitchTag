@@ -43,6 +43,7 @@ public class fService extends Service{
     Notification stateHolderNotification;
     NotificationCompat.Builder builder;
     TrackThread persistentThread;
+    Boolean trackConnected = true;
 
 
 
@@ -184,6 +185,18 @@ public class fService extends Service{
                     stateHolderNotification);
         } else if (intent.getAction().equals("start")) {
             Log.d(TAG, "restart service clicked");
+            try {
+                connect();
+            } catch (Exception e) {
+                mode = "device not found !";
+                e.printStackTrace();
+            }
+            if(deviceGatt == null){
+                mode = "device not found !";
+            }
+            if(trackConnected == false){
+                mode = "device not found !";
+            }
             keepTracking = true;
             builder.setContentText("Tracking Mode : " + mode);
             IntentFilter filter1 = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
@@ -213,14 +226,21 @@ public class fService extends Service{
                 persistentThread.interrupt();
             }
             try {
-                persistentThread.stop();
                 unregisterReceiver(mReceiver);
+                Log.d(TAG,"receiver unregistered");
             } catch (Exception e) {
                 e.printStackTrace();
             }
 //            stopForeground(true);
+
             keepTracking = false;
             String pausedText = "Tracking Paused";
+
+//            deviceGatt.disconnect();
+            if(deviceGatt != null){
+                deviceGatt.close();
+            }
+
             builder.setContentText(pausedText);
             notificationManager.notify(101,builder.build());
 
@@ -313,7 +333,8 @@ public class fService extends Service{
             }
             if (status == BluetoothGatt.GATT_FAILURE) {
                 // failure
-                playAlarm();
+//                playAlarm();
+                trackConnected = false;
                 disconnect();
             }
         }
@@ -381,30 +402,6 @@ public class fService extends Service{
         context.startService(stopIntent);
     }
 
-    public class TrackHitchTagLongThread extends Thread{
-        @Override
-        public void run() {
-            super.run();
-
-            while(keepTracking){
-                Log.d(TAG, "i am tracking ... ");
-                if(!connected()){
-                    playAlarm();
-
-                }else {
-                    stopAlarm();
-                }
-                if (kill == true) stopAlarm();
-                try {
-                    Thread.currentThread().sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-
-            }
-        }
-    }
 
     public class TrackThread extends Thread{
 
@@ -415,7 +412,7 @@ public class fService extends Service{
             while(deviceGatt != null){
                 deviceGatt.readRemoteRssi();
                 try {
-                    Thread.currentThread().sleep(2000);
+                    Thread.currentThread().sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
