@@ -264,7 +264,7 @@ public class HitchTag {
             }
             if (status == BluetoothGatt.GATT_FAILURE) {
                 // failure
-                playAlarm();
+//                playAlarm();
                 disconnect();
             }
         }
@@ -297,6 +297,7 @@ public class HitchTag {
                     bars = 4;
                 }
                 sendIntMessage(Constants.INTMESSAGE.FIND, bars);
+                sendIntMessage(68, rssi);
             }
             else if(lastOp == Constants.INTMESSAGE.TRACK){
                 Log.d("TRACK", "rssi = " + rssi);
@@ -304,7 +305,7 @@ public class HitchTag {
                 if(rssi < -90 || rssi == 0){
                     trackCnt --;
                     if(trackCnt == 0){
-                        playAlarm();
+//                        playAlarm();
                     }
                     else if(trackCnt < -8){
                         stopAlarm();
@@ -330,7 +331,7 @@ public class HitchTag {
 
             while(trakHitch){
                 if(!connected()){
-                    playAlarm();
+//                    playAlarm();
                 }else {
                     stopAlarm();
                 }

@@ -8,6 +8,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
@@ -20,6 +22,7 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
@@ -27,14 +30,16 @@ import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Button;
 
+import java.util.UUID;
+
 /**
  * Created by nomad on 12/7/16.
  */
 public class fService extends Service{
 
-    BluetoothAdapter bluetoothAdapter;
+//    BluetoothAdapter bluetoothAdapter;
     BluetoothDevice device;
-    private BluetoothGatt deviceGatt;
+//    private BluetoothGatt deviceGatt;
     Context context;
     Boolean keepTracking = true;
     Boolean kill = false;
@@ -44,6 +49,33 @@ public class fService extends Service{
     NotificationCompat.Builder builder;
     TrackThread persistentThread;
     Boolean trackConnected = true;
+    Boolean alarmTriggered = false;
+
+    ///////////////
+
+    private BluetoothManager mBluetoothManager;
+    private BluetoothAdapter bluetoothAdapter;
+    private String mBluetoothDeviceAddress;
+    private BluetoothGatt deviceGatt;
+    private int mConnectionState = STATE_DISCONNECTED;
+
+    private static final int STATE_DISCONNECTED = 0;
+    private static final int STATE_CONNECTING = 1;
+    private static final int STATE_CONNECTED = 2;
+
+    public final static String ACTION_GATT_CONNECTED =
+            "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
+    public final static String ACTION_GATT_DISCONNECTED =
+            "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED";
+    public final static String ACTION_GATT_SERVICES_DISCOVERED =
+            "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED";
+    public final static String ACTION_DATA_AVAILABLE =
+            "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
+    public final static String EXTRA_DATA =
+            "com.example.bluetooth.le.EXTRA_DATA";
+
+
+    //////////////
 
 
 
@@ -75,7 +107,11 @@ public class fService extends Service{
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(mReceiver);
+        try {
+            unregisterReceiver(mReceiver);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -93,6 +129,7 @@ public class fService extends Service{
             keepTracking = true;
 
             device =(BluetoothDevice) intent.getExtras().get("device");
+            mBluetoothDeviceAddress = device.getAddress();
             if(device == null){
                 Log.d(TAG,"stopping service : device null");
                 super.stopSelf();
@@ -105,7 +142,7 @@ public class fService extends Service{
             }
 
             if(deviceGatt == null){
-                connect();
+                connect(mBluetoothDeviceAddress);
             }
 
             if (trackingModeLong) {
@@ -184,33 +221,54 @@ public class fService extends Service{
             startForeground(101,
                     stateHolderNotification);
         } else if (intent.getAction().equals("start")) {
+            Boolean restartConnectedFlag = false;
             Log.d(TAG, "restart service clicked");
             try {
-                connect();
+                restartConnectedFlag = connect(mBluetoothDeviceAddress);
             } catch (Exception e) {
                 mode = "device not found !";
                 e.printStackTrace();
             }
-            if(deviceGatt == null){
-                mode = "device not found !";
-            }
-            if(trackConnected == false){
-                mode = "device not found !";
-            }
-            keepTracking = true;
-            builder.setContentText("Tracking Mode : " + mode);
-            IntentFilter filter1 = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
-            IntentFilter filter2 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
-            IntentFilter filter3 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-            this.registerReceiver(mReceiver, filter1);
-            this.registerReceiver(mReceiver, filter2);
-            this.registerReceiver(mReceiver, filter3);
 
-            if(!trackingModeLong){
-                new TrackThread().start();
-            }
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // Do something after 5s = 5000ms
+                    if(deviceGatt == null){
+                        mode = "device not found !";
+                    }else {
+                        if(trackingModeLong){
+                            mode = "Wide coverage";
+                        }else {
+                            mode = "Short coverage";
+                        }
+                    }
+                    if(trackConnected == false){
+                        mode = "device not found !";
+                    }
 
-            notificationManager.notify(101,builder.build());
+
+                    keepTracking = true;
+                    builder.setContentText("Tracking Mode : " + mode);
+
+
+                    if(!trackingModeLong){
+                        new TrackThread().start();
+                    }
+
+                    notificationManager.notify(101,builder.build());
+                }
+            }, 5000);
+
+
+//            IntentFilter filter1 = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
+//            IntentFilter filter2 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
+//            IntentFilter filter3 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+//            this.registerReceiver(mReceiver, filter1);
+//            this.registerReceiver(mReceiver, filter2);
+//            this.registerReceiver(mReceiver, filter3);
+
 
 
 
@@ -220,14 +278,15 @@ public class fService extends Service{
             device =(BluetoothDevice) intent.getExtras().get("device");
             trackingModeLong = (Boolean)intent.getExtras().getBoolean("trackingModeLong");
 
+            writeCharasLevel(Constants.UUIDS.LINK_LOSS, Constants.ALERT_LOW);
 
             stopAlarm();
             if (persistentThread != null) {
                 persistentThread.interrupt();
             }
             try {
-                unregisterReceiver(mReceiver);
-                Log.d(TAG,"receiver unregistered");
+//                unregisterReceiver(mReceiver);
+//                Log.d(TAG,"receiver unregistered");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -236,10 +295,13 @@ public class fService extends Service{
             keepTracking = false;
             String pausedText = "Tracking Paused";
 
-//            deviceGatt.disconnect();
-            if(deviceGatt != null){
-                deviceGatt.close();
+            try {
+                disconnect();
+
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+
 
             builder.setContentText(pausedText);
             notificationManager.notify(101,builder.build());
@@ -256,20 +318,6 @@ public class fService extends Service{
 
 
 
-    private boolean enableBLE(){
-        boolean ret = true;
-
-        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
-
-            Log.d(TAG, "BLE disabled.");
-
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivity(enableBtIntent);
-            ret = false;
-        }
-        return ret;
-    }
-
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -278,22 +326,33 @@ public class fService extends Service{
 
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 //Device found
+                try {
+                    connect(mBluetoothDeviceAddress);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
                 //Device is now connected
+                trackConnected =true;
             }
             else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 //Done searching
             }
             else if (BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED.equals(action)) {
                 //Device is about to disconnect
+                trackConnected = false;
 
             }
             else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
                 //Device has disconnected
 
+                trackConnected = false;
                 if (trackingModeLong) {
-                    playAlarm();
+                    Log.d(TAG,"nipples");
+                    if (keepTracking) {
+                        playAlarm();
+                    }
                 }
 
             }
@@ -308,32 +367,36 @@ public class fService extends Service{
         return this.deviceGatt != null;
     }
 
-    public void connect(){
-            deviceGatt = device.connectGatt(context, false, masterCallBack);
-    }
-
-    public void disconnect(){
-        if(deviceGatt != null){
-            deviceGatt.disconnect();
-        }
-    }
+//    public void connect(){
+//            deviceGatt = device.connectGatt(context, false, masterCallBack);
+//    }
+    
 
     private final BluetoothGattCallback masterCallBack = new BluetoothGattCallback() {
 
         int trackCnt = 4;
+        int trackStopAlarmCount = 4;
 
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTED) {
                 // connected - discover services now
                 gatt.discoverServices();
+                trackConnected = true;
+                mConnectionState = STATE_CONNECTED;
             }
             if (newState == BluetoothProfile.STATE_DISCONNECTED){
                 // disconnected
                 deviceGatt = null;
+                trackConnected = false;
+                if(keepTracking){
+                    if(!trackingModeLong){
+                        playAlarm();
+                    }
+                }
             }
             if (status == BluetoothGatt.GATT_FAILURE) {
                 // failure
-//                playAlarm();
+                playAlarm();
                 trackConnected = false;
                 disconnect();
             }
@@ -372,7 +435,9 @@ public class fService extends Service{
                 if(rssi < -90 || rssi == 0){
                     trackCnt --;
                     if(trackCnt == 0){
+                        Log.d(TAG,"nipple");
                         playAlarm();
+                        alarmTriggered = true;
                         try {
                             Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
                             Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
@@ -388,7 +453,13 @@ public class fService extends Service{
                 }
                 else{
                     trackCnt = 4;
-                    stopAlarm();
+                    if (alarmTriggered) {
+                        trackStopAlarmCount --;
+                        if(trackStopAlarmCount == 0){
+                            stopAlarm();
+                            trackStopAlarmCount = 4;
+                        }
+                    }
                 }
                 Log.d(TAG, "trackCnt = " + trackCnt);
             }
@@ -397,9 +468,11 @@ public class fService extends Service{
 
     public void stopAlarm(){
 
-        Intent stopIntent = new Intent(context, AlarmService.class);
-        stopIntent.setAction(Constants.NOTIFICATION.STOPFOREGROUND_ACTION);
-        context.startService(stopIntent);
+
+            Intent stopIntent = new Intent(context, AlarmService.class);
+            stopIntent.setAction(Constants.NOTIFICATION.STOPFOREGROUND_ACTION);
+            context.startService(stopIntent);
+
     }
 
 
@@ -426,6 +499,100 @@ public class fService extends Service{
         Intent startIntent = new Intent(context, AlarmService.class);
         startIntent.setAction(Constants.NOTIFICATION.STARTFOREGROUND_ACTION);
         context.startService(startIntent);
+    }
+
+    /**
+     * Connects to the GATT server hosted on the Bluetooth LE device.
+     *
+     * @param address The device address of the destination device.
+     *
+     * @return Return true if the connection is initiated successfully. The connection result
+     *         is reported asynchronously through the
+     *         {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
+     *         callback.
+     */
+    public boolean connect(final String address) {
+        if (bluetoothAdapter == null || address == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
+            return false;
+        }
+
+        // Previously connected device.  Try to reconnect.
+        if (mBluetoothDeviceAddress != null && address.equals(mBluetoothDeviceAddress)
+                && deviceGatt != null) {
+            Log.d(TAG, "Trying to use an existing deviceGatt for connection.");
+            if (deviceGatt.connect()) {
+                mConnectionState = STATE_CONNECTING;
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        final BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
+        if (device == null) {
+            Log.w(TAG, "Device not found.  Unable to connect.");
+            return false;
+        }
+        // We want to directly connect to the device, so we are setting the autoConnect
+        // parameter to false.
+        deviceGatt = device.connectGatt(this, false, masterCallBack);
+        Log.d(TAG, "Trying to create a new connection.");
+        mBluetoothDeviceAddress = address;
+        mConnectionState = STATE_CONNECTING;
+        return true;
+    }
+
+    /**
+     * Disconnects an existing connection or cancel a pending connection. The disconnection result
+     * is reported asynchronously through the
+     * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
+     * callback.
+     */
+    public void disconnect() {
+        if (bluetoothAdapter == null || deviceGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        deviceGatt.disconnect();
+        Log.d(TAG,"disconnect called");
+
+    }
+
+    /**
+     * After using a given BLE device, the app must call this method to ensure resources are
+     * released properly.
+     */
+    public void close() {
+        if (deviceGatt == null) {
+            return;
+        }
+        deviceGatt.close();
+        deviceGatt = null;
+    }
+
+    public void writeCharasLevel(UUID serviceUUID, int level) {
+        if(deviceGatt == null){
+            Log.d("TAG", "no device connected");
+            return;
+        }
+        BluetoothGattService alertService = deviceGatt.getService(serviceUUID);
+        if(alertService == null) {
+            Log.d("TAG", "service not found!");
+            return;
+        }
+        BluetoothGattCharacteristic alertLevel = alertService.getCharacteristic(Constants.UUIDS.ALERT_LEVEL);
+        if(alertLevel == null) {
+            Log.d("TAG", "Alert Level charateristic not found!");
+            return;
+        }
+        alertLevel.setValue(level, BluetoothGattCharacteristic.FORMAT_UINT8, 0);
+        deviceGatt.writeCharacteristic(alertLevel);
+        try {
+            Thread.currentThread().sleep(50);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 }

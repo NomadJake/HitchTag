@@ -43,6 +43,7 @@ dependencies {
     compile(group: 'com.ribell', name: 'colorpickerview', version: '1.0.1', ext: 'aar')
     compile 'com.ogaclejapan.smarttablayout:library:1.6.1@aar'
     compile 'com.github.chenupt.android:springindicator:1.0.2@aar'
+    compile 'com.akexorcist:RoundCornerProgressBar:2.0.3'
 }
 
 

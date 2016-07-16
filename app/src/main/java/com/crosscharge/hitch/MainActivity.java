@@ -599,13 +599,25 @@ public class MainActivity extends AppCompatActivity {
     public void onTrackButtonPressed(View v) {
         // here for track button onclick to do
         HitchTag.trakHitch = true;
-        tagList.get(pos).trackHitchTag();
+//        tagList.get(pos).trackHitchTag();
+
+        tagList.get(pos).writeCharasLevel(Constants.UUIDS.LINK_LOSS, Constants.ALERT_HIGH);
+
+        Intent findIntent = new Intent(MainActivity.this,fService.class);
+        findIntent.putExtra("device",tagList.get(pos).getDevice());
+        startService(findIntent);
+
     }
 
     public void onFindButtonPressed(View v) {
         // here for find button onclick to do
-        HitchTag.trakHitch = true;
-        tagList.get(pos).findHitchTag();
+//        HitchTag.trakHitch = true;
+//        tagList.get(pos).findHitchTag();
+        tagList.get(pos).writeCharasLevel(Constants.UUIDS.LINK_LOSS, Constants.ALERT_HIGH);
+
+        Intent findIntent = new Intent(MainActivity.this,StrengthBars.class);
+        findIntent.putExtra("device",tagList.get(pos).getDevice());
+        startActivity(findIntent);
     }
 
     public void onTrainButtonPressed(View v) {
