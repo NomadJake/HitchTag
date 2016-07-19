@@ -99,7 +99,7 @@ public class ScanActivity extends AppCompatActivity {
     // scan callback
     private BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
-        public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+        public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -107,8 +107,10 @@ public class ScanActivity extends AppCompatActivity {
                     Log.d(TAG, device.toString());
                     if (!scanArrayList.contains(device)) {
                         if (!savedAddressArrayList.contains(device.getAddress())) {
-                            scanArrayList.add(device);
-                            scanAdapter.notifyDataSetChanged();
+                            if (rssi > -65) {
+                                scanArrayList.add(device);
+                                scanAdapter.notifyDataSetChanged();
+                            }
                             //
 
                        }
@@ -197,6 +199,7 @@ public class ScanActivity extends AppCompatActivity {
             // valid hitch tag. add to database
             helper.addNewHitchTag(gatt.getDevice());
             Log.d("count",helper.getHitchTagCount()+"");
+            disconnect();
             Intent intent=new Intent(getApplicationContext(),TagSettingsActivity.class);
             intent.putExtra("tag",helper.getHitchTagCount()-1+"");
             startActivity(intent);

@@ -217,6 +217,15 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+        final Handler handler1 = new Handler();
+        handler1.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                scanLeDevice(true);
+            }
+        }, 5000);
+
+
 
         tagImage=(CircleImageView)findViewById(R.id.tag_image);
         SharedPreferences sharedPreferences =  PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext());
@@ -628,6 +637,13 @@ public class MainActivity extends AppCompatActivity {
     public void onRefreshPressed(View v) {
         // here for refresh button onclick to do
         scanLeDevice(true);
+    }
+
+    public void onConnectPressed(View v) {
+        // here for refresh button onclick to do
+        if (!tagList.isEmpty()){
+            tagList.get(tagList.size() - 1 ).connect();
+        }
     }
 
     public void onTagSettingsPressed(View v) {

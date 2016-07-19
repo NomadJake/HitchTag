@@ -227,7 +227,7 @@ public class fService extends Service {
             builder.addAction(android.R.drawable.ic_media_play, "start", pstartTrackingIntent);
             builder.addAction(android.R.drawable.ic_media_pause, "stop",
                     pstopTrackingIntent);
-            builder.addAction(android.R.drawable.ic_lock_power_off, "kill",
+            builder.addAction(android.R.drawable.ic_lock_power_off, "close",
                     pkillService);
 
             builder.setPriority(Notification.PRIORITY_HIGH);
