@@ -37,9 +37,9 @@ import java.util.UUID;
  */
 public class fService extends Service{
 
-//    BluetoothAdapter bluetoothAdapter;
+    //    BluetoothAdapter bluetoothAdapter;
     BluetoothDevice device;
-//    private BluetoothGatt deviceGatt;
+    //    private BluetoothGatt deviceGatt;
     Context context;
     Boolean keepTracking = true;
     Boolean kill = false;
@@ -50,6 +50,7 @@ public class fService extends Service{
     TrackThread persistentThread;
     Boolean trackConnected = true;
     Boolean alarmTriggered = false;
+    Boolean restartConnectedFlag = false ;
 
     ///////////////
 
@@ -127,6 +128,7 @@ public class fService extends Service{
         if (intent.getAction().equals("fore")) {
 
             keepTracking = true;
+//            restartConnectedFlag = true;
 
             device =(BluetoothDevice) intent.getExtras().get("device");
             mBluetoothDeviceAddress = device.getAddress();
@@ -161,6 +163,7 @@ public class fService extends Service{
                 persistentThread = new TrackThread();
                 persistentThread.start();
                 Log.d(TAG,"started tracking thread near mode");
+                restartConnectedFlag = true;
 
             }
             Log.d(TAG, "Received Start Foreground Intent ");
@@ -221,10 +224,9 @@ public class fService extends Service{
             startForeground(101,
                     stateHolderNotification);
         } else if (intent.getAction().equals("start")) {
-            Boolean restartConnectedFlag = false;
             Log.d(TAG, "restart service clicked");
             try {
-                restartConnectedFlag = connect(mBluetoothDeviceAddress);
+                Boolean restartConnectedFlag2 = connect(mBluetoothDeviceAddress);
             } catch (Exception e) {
                 mode = "device not found !";
                 e.printStackTrace();
@@ -234,10 +236,12 @@ public class fService extends Service{
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    // Do something after 5s = 5000ms
                     if(deviceGatt == null){
                         mode = "device not found !";
+                        restartConnectedFlag = false;
                     }else {
+                        writeCharasLevel(Constants.UUIDS.LINK_LOSS, Constants.ALERT_HIGH);
+                        restartConnectedFlag = true;
                         if(trackingModeLong){
                             mode = "Wide coverage";
                         }else {
@@ -246,6 +250,7 @@ public class fService extends Service{
                     }
                     if(trackConnected == false){
                         mode = "device not found !";
+                        restartConnectedFlag  = false;
                     }
 
 
@@ -370,7 +375,7 @@ public class fService extends Service{
 //    public void connect(){
 //            deviceGatt = device.connectGatt(context, false, masterCallBack);
 //    }
-    
+
 
     private final BluetoothGattCallback masterCallBack = new BluetoothGattCallback() {
 
@@ -390,7 +395,9 @@ public class fService extends Service{
                 trackConnected = false;
                 if(keepTracking){
                     if(!trackingModeLong){
-                        playAlarm();
+                        if (restartConnectedFlag) {
+                            playAlarm();
+                        }
                     }
                 }
             }
@@ -469,9 +476,9 @@ public class fService extends Service{
     public void stopAlarm(){
 
 
-            Intent stopIntent = new Intent(context, AlarmService.class);
-            stopIntent.setAction(Constants.NOTIFICATION.STOPFOREGROUND_ACTION);
-            context.startService(stopIntent);
+        Intent stopIntent = new Intent(context, AlarmService.class);
+        stopIntent.setAction(Constants.NOTIFICATION.STOPFOREGROUND_ACTION);
+        context.startService(stopIntent);
 
     }
 
