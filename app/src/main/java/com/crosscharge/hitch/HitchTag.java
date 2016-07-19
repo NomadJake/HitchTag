@@ -272,6 +272,7 @@ public class HitchTag {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             Log.d("service", gatt.toString() + ", " + status);
+            sendIntMessage(69,69);
         }
 
         @Override

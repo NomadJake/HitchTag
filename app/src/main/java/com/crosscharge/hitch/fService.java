@@ -362,8 +362,8 @@ public class fService extends Service {
 
     private final BluetoothGattCallback masterCallBack = new BluetoothGattCallback() {
 
-        int trackCnt = 4;
-        int trackStopAlarmCount = 4;
+        int trackCnt = 3;
+        int trackStopAlarmCount = 3;
 
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTED) {
@@ -435,12 +435,12 @@ public class fService extends Service {
                         disconnect();
                     }
                 } else {
-                    trackCnt = 4;
+                    trackCnt = 3;
                     if (alarmTriggered) {
                         trackStopAlarmCount--;
                         if (trackStopAlarmCount == 0) {
                             stopAlarm();
-                            trackStopAlarmCount = 4;
+                            trackStopAlarmCount = 3;
                         }
                     }
                 }

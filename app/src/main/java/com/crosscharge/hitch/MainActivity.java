@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     public Boolean trackingModeLong = true;
-    private ImageView pawImage;
+    public ImageView pawImage;
     public Button startTrackingServiceButton;
     private Button stopAll;
     private String TAG = MainActivity.class.getName();
@@ -728,9 +728,14 @@ public class MainActivity extends AppCompatActivity {
             }
             else if(msg.what == Constants.INTMESSAGE.FIND){
                 Toast.makeText(context, "FIND: bars = " + msg.obj, Toast.LENGTH_SHORT).show();
+            }else if(msg.what == 69){
+                Toast.makeText(context, "Tag Connected", Toast.LENGTH_SHORT).show();
+
             }
         }
     }
+
+
 
     @Override
     protected void onDestroy() {
