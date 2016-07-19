@@ -35,11 +35,9 @@ import java.util.UUID;
 /**
  * Created by nomad on 12/7/16.
  */
-public class fService extends Service{
+public class fService extends Service {
 
-    //    BluetoothAdapter bluetoothAdapter;
     BluetoothDevice device;
-    //    private BluetoothGatt deviceGatt;
     Context context;
     Boolean keepTracking = true;
     Boolean kill = false;
@@ -50,9 +48,7 @@ public class fService extends Service{
     TrackThread persistentThread;
     Boolean trackConnected = true;
     Boolean alarmTriggered = false;
-    Boolean restartConnectedFlag = false ;
-
-    ///////////////
+    Boolean restartConnectedFlag = false;
 
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
@@ -75,21 +71,14 @@ public class fService extends Service{
     public final static String EXTRA_DATA =
             "com.example.bluetooth.le.EXTRA_DATA";
 
-
-    //////////////
-
-
-
     String TAG = "fServiceLOG";
     String mode;
-
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
-
 
     @Override
     public void onCreate() {
@@ -101,7 +90,6 @@ public class fService extends Service{
         bluetoothAdapter = bluetoothManager.getAdapter();
 
         context = getApplicationContext();
-
 
     }
 
@@ -116,7 +104,6 @@ public class fService extends Service{
     }
 
 
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
@@ -124,31 +111,59 @@ public class fService extends Service{
         Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notificationSound);
         r.play();
 
+        if( intent==null){
 
-        if (intent.getAction().equals("fore")) {
+            Intent notificationIntent = new Intent(this, MainActivity.class);
+            notificationIntent.setAction("main");
+            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                    | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                    notificationIntent, 0);
+
+            notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            Bitmap icon = BitmapFactory.decodeResource(getResources(),
+                    R.drawable.hitchlogo);
+
+            builder = new NotificationCompat.Builder(context);
+
+            builder.setContentTitle("Hitch");
+            builder.setContentText("Lost Hitch tag !");
+            builder.setSmallIcon(R.drawable.hitchinlogo);
+            builder.setLargeIcon(Bitmap.createScaledBitmap(icon, 200, 200, false));
+            builder.setContentIntent(pendingIntent);
+            builder.setOngoing(true);
+
+            builder.setPriority(Notification.PRIORITY_HIGH);
+            stateHolderNotification = builder.build();
+
+
+            startForeground(101,
+                    stateHolderNotification);
+
+        } else if (intent.getAction().equals("fore")) {
 
             keepTracking = true;
 //            restartConnectedFlag = true;
 
-            device =(BluetoothDevice) intent.getExtras().get("device");
+            device = (BluetoothDevice) intent.getExtras().get("device");
             mBluetoothDeviceAddress = device.getAddress();
-            if(device == null){
-                Log.d(TAG,"stopping service : device null");
+            if (device == null) {
+                Log.d(TAG, "stopping service : device null");
                 super.stopSelf();
             }
-            trackingModeLong = (Boolean)intent.getExtras().getBoolean("trackingModeLong");
-            if(trackingModeLong){
+            trackingModeLong = (Boolean) intent.getExtras().getBoolean("trackingModeLong");
+            if (trackingModeLong) {
                 mode = "Wide coverage";
-            }else {
+            } else {
                 mode = "Short coverage";
             }
 
-            if(deviceGatt == null){
+            if (deviceGatt == null) {
                 connect(mBluetoothDeviceAddress);
             }
 
             if (trackingModeLong) {
-                Log.d(TAG,"started tracking thread long mode");
+                Log.d(TAG, "started tracking thread long mode");
 
                 IntentFilter filter1 = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
                 IntentFilter filter2 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
@@ -158,11 +173,10 @@ public class fService extends Service{
                 this.registerReceiver(mReceiver, filter3);
 
 
-
             } else {
                 persistentThread = new TrackThread();
                 persistentThread.start();
-                Log.d(TAG,"started tracking thread near mode");
+                Log.d(TAG, "started tracking thread near mode");
                 restartConnectedFlag = true;
 
             }
@@ -178,21 +192,21 @@ public class fService extends Service{
 
 
             Intent startTrackingIntent = new Intent(this, fService.class);
-            startTrackingIntent.putExtra("device",device);
-            startTrackingIntent.putExtra("trackingModeLong",trackingModeLong);
+            startTrackingIntent.putExtra("device", device);
+            startTrackingIntent.putExtra("trackingModeLong", trackingModeLong);
             startTrackingIntent.setAction("start");
             PendingIntent pstartTrackingIntent = PendingIntent.getService(this, 0,
                     startTrackingIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent stopTrackingIntent = new Intent(this, fService.class);
-            stopTrackingIntent.putExtra("device",device);
-            stopTrackingIntent.putExtra("trackingModeLong",trackingModeLong);
+            stopTrackingIntent.putExtra("device", device);
+            stopTrackingIntent.putExtra("trackingModeLong", trackingModeLong);
             stopTrackingIntent.setAction("stop");
             PendingIntent pstopTrackingIntent = PendingIntent.getService(this, 0,
                     stopTrackingIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent killService = new Intent(this, fService.class);
-            killService.putExtra("device",device);
+            killService.putExtra("device", device);
             killService.setAction("kill");
             PendingIntent pkillService = PendingIntent.getService(this, 0,
                     killService, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -210,7 +224,7 @@ public class fService extends Service{
             builder.setLargeIcon(Bitmap.createScaledBitmap(icon, 200, 200, false));
             builder.setContentIntent(pendingIntent);
             builder.setOngoing(true);
-            builder.addAction(android.R.drawable.ic_media_play,"start",pstartTrackingIntent);
+            builder.addAction(android.R.drawable.ic_media_play, "start", pstartTrackingIntent);
             builder.addAction(android.R.drawable.ic_media_pause, "stop",
                     pstopTrackingIntent);
             builder.addAction(android.R.drawable.ic_lock_power_off, "kill",
@@ -218,7 +232,6 @@ public class fService extends Service{
 
             builder.setPriority(Notification.PRIORITY_HIGH);
             stateHolderNotification = builder.build();
-
 
 
             startForeground(101,
@@ -236,21 +249,21 @@ public class fService extends Service{
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    if(deviceGatt == null){
+                    if (deviceGatt == null) {
                         mode = "device not found !";
                         restartConnectedFlag = false;
-                    }else {
+                    } else {
                         writeCharasLevel(Constants.UUIDS.LINK_LOSS, Constants.ALERT_HIGH);
                         restartConnectedFlag = true;
-                        if(trackingModeLong){
+                        if (trackingModeLong) {
                             mode = "Wide coverage";
-                        }else {
+                        } else {
                             mode = "Short coverage";
                         }
                     }
-                    if(trackConnected == false){
+                    if (trackConnected == false) {
                         mode = "device not found !";
-                        restartConnectedFlag  = false;
+                        restartConnectedFlag = false;
                     }
 
 
@@ -258,30 +271,20 @@ public class fService extends Service{
                     builder.setContentText("Tracking Mode : " + mode);
 
 
-                    if(!trackingModeLong){
+                    if (!trackingModeLong) {
                         new TrackThread().start();
                     }
 
-                    notificationManager.notify(101,builder.build());
+                    notificationManager.notify(101, builder.build());
                 }
             }, 5000);
-
-
-//            IntentFilter filter1 = new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED);
-//            IntentFilter filter2 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED);
-//            IntentFilter filter3 = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-//            this.registerReceiver(mReceiver, filter1);
-//            this.registerReceiver(mReceiver, filter2);
-//            this.registerReceiver(mReceiver, filter3);
-
-
 
 
         } else if (intent.getAction().equals("stop")) {
             Log.d(TAG, "pause tracking clicked");
 
-            device =(BluetoothDevice) intent.getExtras().get("device");
-            trackingModeLong = (Boolean)intent.getExtras().getBoolean("trackingModeLong");
+            device = (BluetoothDevice) intent.getExtras().get("device");
+            trackingModeLong = (Boolean) intent.getExtras().getBoolean("trackingModeLong");
 
             writeCharasLevel(Constants.UUIDS.LINK_LOSS, Constants.ALERT_LOW);
 
@@ -290,12 +293,10 @@ public class fService extends Service{
                 persistentThread.interrupt();
             }
             try {
-//                unregisterReceiver(mReceiver);
-//                Log.d(TAG,"receiver unregistered");
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
-//            stopForeground(true);
 
             keepTracking = false;
             String pausedText = "Tracking Paused";
@@ -309,9 +310,9 @@ public class fService extends Service{
 
 
             builder.setContentText(pausedText);
-            notificationManager.notify(101,builder.build());
+            notificationManager.notify(101, builder.build());
 
-        }else if (intent.getAction().equals("kill")) {
+        } else if (intent.getAction().equals("kill")) {
             Log.d(TAG, " kill service intent by user");
             disconnect();
             stopForeground(true);
@@ -319,8 +320,6 @@ public class fService extends Service{
         }
         return START_STICKY;
     }
-
-
 
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -336,25 +335,21 @@ public class fService extends Service{
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }
-            else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
+            } else if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
                 //Device is now connected
-                trackConnected =true;
-            }
-            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                trackConnected = true;
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 //Done searching
-            }
-            else if (BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED.equals(action)) {
+            } else if (BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED.equals(action)) {
                 //Device is about to disconnect
                 trackConnected = false;
 
-            }
-            else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+            } else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
                 //Device has disconnected
 
                 trackConnected = false;
                 if (trackingModeLong) {
-                    Log.d(TAG,"nipples");
+                    Log.d(TAG, "ACTION_ACL_DISCONNECTED");
                     if (keepTracking) {
                         playAlarm();
                     }
@@ -363,18 +358,6 @@ public class fService extends Service{
             }
         }
     };
-
-    public boolean deviceAvailable(){
-        return this.device != null;
-    }
-
-    public boolean connected(){
-        return this.deviceGatt != null;
-    }
-
-//    public void connect(){
-//            deviceGatt = device.connectGatt(context, false, masterCallBack);
-//    }
 
 
     private final BluetoothGattCallback masterCallBack = new BluetoothGattCallback() {
@@ -389,12 +372,12 @@ public class fService extends Service{
                 trackConnected = true;
                 mConnectionState = STATE_CONNECTED;
             }
-            if (newState == BluetoothProfile.STATE_DISCONNECTED){
+            if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 // disconnected
                 deviceGatt = null;
                 trackConnected = false;
-                if(keepTracking){
-                    if(!trackingModeLong){
+                if (keepTracking) {
+                    if (!trackingModeLong) {
                         if (restartConnectedFlag) {
                             playAlarm();
                         }
@@ -418,31 +401,26 @@ public class fService extends Service{
         public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
 
             super.onReadRemoteRssi(gatt, rssi, status);
-            if(false){
+            if (false) {
                 Log.d(TAG, "rssi = " + rssi);
                 int bars = 0;
-                if(rssi < -80 || rssi == 0){
+                if (rssi < -80 || rssi == 0) {
                     bars = 0;
-                }
-                else if(rssi < -65){
+                } else if (rssi < -65) {
                     bars = 1;
-                }
-                else if(rssi < -50){
+                } else if (rssi < -50) {
                     bars = 2;
-                }
-                else if(rssi < -35){
+                } else if (rssi < -35) {
                     bars = 3;
-                }
-                else{
+                } else {
                     bars = 4;
                 }
-            }
-            else if(keepTracking){
+            } else if (keepTracking) {
                 Log.d(TAG, "rssi = " + rssi);
-                if(rssi < -90 || rssi == 0){
-                    trackCnt --;
-                    if(trackCnt == 0){
-                        Log.d(TAG,"nipple");
+                if (rssi < -90 || rssi == 0) {
+                    trackCnt--;
+                    if (trackCnt == 0) {
+                        Log.d(TAG, "nipple");
                         playAlarm();
                         alarmTriggered = true;
                         try {
@@ -452,17 +430,15 @@ public class fService extends Service{
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                    }
-                    else if(trackCnt < -8){
+                    } else if (trackCnt < -8) {
                         stopAlarm();
                         disconnect();
                     }
-                }
-                else{
+                } else {
                     trackCnt = 4;
                     if (alarmTriggered) {
-                        trackStopAlarmCount --;
-                        if(trackStopAlarmCount == 0){
+                        trackStopAlarmCount--;
+                        if (trackStopAlarmCount == 0) {
                             stopAlarm();
                             trackStopAlarmCount = 4;
                         }
@@ -473,7 +449,7 @@ public class fService extends Service{
         }
     };
 
-    public void stopAlarm(){
+    public void stopAlarm() {
 
 
         Intent stopIntent = new Intent(context, AlarmService.class);
@@ -483,13 +459,13 @@ public class fService extends Service{
     }
 
 
-    public class TrackThread extends Thread{
+    public class TrackThread extends Thread {
 
         @Override
         public void run() {
             super.run();
 
-            while(deviceGatt != null){
+            while (deviceGatt != null) {
                 deviceGatt.readRemoteRssi();
                 try {
                     Thread.currentThread().sleep(1000);
@@ -502,22 +478,12 @@ public class fService extends Service{
         }
     }
 
-    public void playAlarm(){
+    public void playAlarm() {
         Intent startIntent = new Intent(context, AlarmService.class);
         startIntent.setAction(Constants.NOTIFICATION.STARTFOREGROUND_ACTION);
         context.startService(startIntent);
     }
 
-    /**
-     * Connects to the GATT server hosted on the Bluetooth LE device.
-     *
-     * @param address The device address of the destination device.
-     *
-     * @return Return true if the connection is initiated successfully. The connection result
-     *         is reported asynchronously through the
-     *         {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
-     *         callback.
-     */
     public boolean connect(final String address) {
         if (bluetoothAdapter == null || address == null) {
             Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
@@ -550,26 +516,16 @@ public class fService extends Service{
         return true;
     }
 
-    /**
-     * Disconnects an existing connection or cancel a pending connection. The disconnection result
-     * is reported asynchronously through the
-     * {@code BluetoothGattCallback#onConnectionStateChange(android.bluetooth.BluetoothGatt, int, int)}
-     * callback.
-     */
     public void disconnect() {
         if (bluetoothAdapter == null || deviceGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
         deviceGatt.disconnect();
-        Log.d(TAG,"disconnect called");
+        Log.d(TAG, "disconnect called");
 
     }
 
-    /**
-     * After using a given BLE device, the app must call this method to ensure resources are
-     * released properly.
-     */
     public void close() {
         if (deviceGatt == null) {
             return;
@@ -579,17 +535,17 @@ public class fService extends Service{
     }
 
     public void writeCharasLevel(UUID serviceUUID, int level) {
-        if(deviceGatt == null){
+        if (deviceGatt == null) {
             Log.d("TAG", "no device connected");
             return;
         }
         BluetoothGattService alertService = deviceGatt.getService(serviceUUID);
-        if(alertService == null) {
+        if (alertService == null) {
             Log.d("TAG", "service not found!");
             return;
         }
         BluetoothGattCharacteristic alertLevel = alertService.getCharacteristic(Constants.UUIDS.ALERT_LEVEL);
-        if(alertLevel == null) {
+        if (alertLevel == null) {
             Log.d("TAG", "Alert Level charateristic not found!");
             return;
         }

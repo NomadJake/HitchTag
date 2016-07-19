@@ -37,7 +37,7 @@ public class AlarmService extends Service {
                     v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
                     v.vibrate(200);
 
-                    p = MediaPlayer.create(getApplicationContext(), R.raw.beep);
+                    p = MediaPlayer.create(getApplicationContext(), R.raw.beep1);
                     p.start();
 
                     try {
