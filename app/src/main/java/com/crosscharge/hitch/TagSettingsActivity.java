@@ -1,5 +1,8 @@
 package com.crosscharge.hitch;
 
+import android.app.ActivityManager;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.DialogInterface;
@@ -27,6 +30,7 @@ public class TagSettingsActivity extends AppCompatActivity implements ColorPicke
     ColorPickerView colorPickerView;
     DbHelper helper;
     HitchTag tag;
+    String tagStatusSaved;
     ArrayList<String> tagThemeColorList;
     ArrayList<HitchTag> tagList;
 
@@ -46,6 +50,10 @@ public class TagSettingsActivity extends AppCompatActivity implements ColorPicke
        if(getIntent().hasExtra("tag"))
        {   tag=tagList.get(Integer.parseInt(getIntent().getStringExtra("tag")));
            setCurrentTheme((chosenThemeColor=Integer.parseInt(helper.getHitchTagThemeColors().get(Integer.parseInt(getIntent().getStringExtra("tag"))))));
+        }
+        if(getIntent().hasExtra("tagStatus"))
+        {
+            tagStatusSaved=getIntent().getStringExtra("tagStatus");
         }
 
         super.onCreate(savedInstanceState);
@@ -78,8 +86,22 @@ public class TagSettingsActivity extends AppCompatActivity implements ColorPicke
             public void onClick(DialogInterface dialog, int which) {
                 switch (which){
                     case DialogInterface.BUTTON_POSITIVE:
-                        //Yes button clicked
-                        //remove hitchtag here VAZE
+                        new AlertDialog.Builder(TagSettingsActivity.this)
+                                .setTitle("")
+                                .setMessage(" Are you really sure. This will delete your tag and close the app")
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+
+                                        //Yes button clicked
+                                        helper.removeHitchTag(tag);
+                                        ((ActivityManager)getApplicationContext().getSystemService(ACTIVITY_SERVICE))
+                                                .clearApplicationUserData();
+                                        TagSettingsActivity.this.finish();
+                                    }})
+                                .setNegativeButton("NO", null).show();
+
 
                         break;
 
@@ -103,13 +125,16 @@ public class TagSettingsActivity extends AppCompatActivity implements ColorPicke
         //tagList = helper.getHitchTagList();
         //Log.d("COLOR",tagList.get(0).getThemeColor()+"");
         //pass chosenTheme to the mainActivity and setTheme onResume VAZE
-        startActivity(new Intent(this,MainActivity.class));
+        Intent ii=new Intent(this,MainActivity.class);
+        ii.putExtra("tagStatus",tagStatusSaved);
         SharedPreferences settings = getSharedPreferences(Constants.PREFS_NAME, 0);
         if (settings.getBoolean("my_first_time", false)) {
-            new Intent(this,MainActivity.class);
+
+            startActivity(ii);
         }
         else
         {
+            Log.d("not first time","not fit");
             onBackPressed();
         }
     }

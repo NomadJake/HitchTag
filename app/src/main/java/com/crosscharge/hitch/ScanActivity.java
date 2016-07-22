@@ -107,7 +107,9 @@ public class ScanActivity extends AppCompatActivity {
                     Log.d(TAG, device.toString());
                     if (!scanArrayList.contains(device)) {
                         if (!savedAddressArrayList.contains(device.getAddress())) {
-                            if (rssi > -65) {
+                            if (rssi > -65
+                                    //&& device.getName().equalsIgnoreCase("Hitch tag")
+                                    ) {
                                 scanArrayList.add(device);
                                 scanAdapter.notifyDataSetChanged();
                             }
@@ -219,6 +221,11 @@ public class ScanActivity extends AppCompatActivity {
     public void backPressed(View v)
     {
         onBackPressed();
+
+    }
+    public void rescanPressed(View v)
+    {   viewFlipper.setDisplayedChild(0);
+        viewSwitcher.setDisplayedChild(0);
 
     }
     @Override

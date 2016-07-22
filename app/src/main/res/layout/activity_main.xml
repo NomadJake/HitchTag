@@ -44,7 +44,13 @@
                             android:layout_width="0dp"
                             android:layout_weight="1"
                             android:layout_height="match_parent">
-
+                            <Button
+                                style="?android:attr/buttonStyleSmall"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Stop"
+                                android:onClick="stopAll"
+                                android:id="@+id/buttonStopAll" />
                         </LinearLayout>
                         <LinearLayout
                             android:layout_width="0dp"
@@ -55,7 +61,6 @@
                                 android:src="@drawable/hitchlogo"
                                 android:layout_height="match_parent"
                                 android:layout_width="match_parent"
-
                                 android:tint="?attr/colorPrimary"
 
 
@@ -71,9 +76,9 @@
                                 android:id="@+id/Settings"
                                 android:layout_width="60dp"
                                 android:layout_height="60dp"
-                                android:src="@drawable/settingsicon"
+                                android:src="@drawable/info"
                                 android:clickable="true"
-                                android:onClick="onSettingsPressed"
+                                android:onClick="onInfoPressed"
                                 android:focusable="true"
 
                                 app:rippleColor="@color/colorPrimary"
@@ -210,15 +215,22 @@
                 android:layout_height="match_parent"
                 android:src="@drawable/pawshadow"
                 android:scaleType="fitCenter"
+                android:clickable="true"
+                android:focusable="true"
+
 
                />
+
 
     <ImageView
         android:id="@+id/pawImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:src="@drawable/paw"
+        android:clickable="true"
+        android:focusable="true"
         android:scaleType="fitCenter"
+        android:onClick="onConnectPressed"
         android:tint="?attr/colorPrimary"/>
 
     <LinearLayout
@@ -228,7 +240,74 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1.1">
+            android:layout_weight="1.1"
+            android:orientation="horizontal">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center|top">
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tagStatusText"
+                    android:text="N.A."
+                    android:textColor="@color/colorAccent"
+                    android:textSize="14dp"
+                 />
+                <com.felipecsl.gifimageview.library.GifImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginTop="10dp"
+                    android:id="@+id/tagStatusImage"
+
+                    android:src="@drawable/na_status"
+                    android:textColor="#393467"
+
+                    android:textSize="16sp"
+                    />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="3"
+                android:layout_height="match_parent">
+
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center|top">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/rangeText"
+                    android:text="Range"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="14sp"
+                 />
+
+
+                <com.kyleduo.switchbutton.SwitchButton
+                    android:id="@+id/rangeSwitch"
+                    android:layout_width="30dp"
+                    android:layout_height="wrap_content"
+                    app:kswTextOff="LOW"
+                    app:kswTextOn="HIGH"
+                    android:textSize="12sp"
+                    app:kswTintColor="?attr/colorPrimary"
+                    android:layout_marginTop="10dp"
+                    app:kswFadeBack="true" />
+
+
+            </LinearLayout>
+
+
 
         </LinearLayout>
         <LinearLayout
@@ -264,22 +343,8 @@
                 android:layout_height="match_parent"
                 android:layout_weight="0.85">
 
-                <Button
-                    style="?android:attr/buttonStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="service"
-                    android:onClick="serviceStart"
-                    android:id="@+id/trackingServiceButton" />
 
-                <Button
-                    style="?android:attr/buttonStyleSmall"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Stop"
-                    android:onClick="stopAll"
-                    android:backgroundTint="@color/themeColor0"
-                    android:id="@+id/buttonStopAll" />
+
             </LinearLayout>
             <LinearLayout
                 android:layout_width="0dp"
@@ -302,49 +367,6 @@
 
     </LinearLayout>
 
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/rangeText"
-                        android:text="Range"
-                        android:textColor="@color/colorAccent"
-                        android:textSize="14sp"
-                        android:layout_gravity="end"
-                        android:layout_marginEnd="15dp" />
-                    <ImageView
-                        android:layout_width="30dp"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/tagStatusImage"
-                        android:text="Unavailable"
-                        android:src="@drawable/nearby_statusicon"
-                        android:textColor="#393467"
-                        android:textSize="16sp"
-                        android:layout_marginTop="15dp"
-                        android:layout_marginStart="15dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/tagStatusText"
-                        android:text="N.A."
-                        android:textColor="@color/colorAccent"
-                        android:textSize="14dp"
-                        android:layout_gravity="start"
-                        android:layout_marginStart="15dp" />
-
-                    <com.kyleduo.switchbutton.SwitchButton
-                        android:id="@+id/rangeSwitch"
-                        android:layout_width="30dp"
-                        android:layout_height="wrap_content"
-                        app:kswTextOff="LOW"
-                        app:kswTextOn="HIGH"
-                        android:textSize="12sp"
-                        android:layout_gravity="end"
-                        android:layout_marginTop="30dp"
-                        android:layout_marginEnd="13dp"
-                        app:kswTintColor="?attr/colorPrimary"
-                        app:kswFadeBack="true" />
 
 
 
@@ -389,13 +411,7 @@
                 android:layout_gravity="center"
                 android:onClick="onTrackButtonPressed"/>
 
-                <Button
-                    style="?android:attr/buttonStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="connect"
-                    android:onClick="onConnectPressed"
-                    android:id="@+id/button" />
+
 
             </LinearLayout>
             <LinearLayout

@@ -74,6 +74,17 @@ public class DbHelper extends SQLiteOpenHelper {
 
         Log.i("x", "Inserted HitchTag " + device.getName() + ", " + device.getAddress());
     }
+    public void removeHitchTag(HitchTag tag){
+        // Removes hitch tag
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL(
+                "DELETE FROM " + TABLE_HITCH +
+
+                        " WHERE " + HITCH_UUID + " = '" + tag.getAddress() + "'");
+
+
+    }
     public void updateHitchThemeColor(HitchTag tag, int color){
         // Updates HitchTag Theme color
 

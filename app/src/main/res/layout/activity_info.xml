@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="com.crosscharge.hitch.ScanActivity"
+    android:background="@color/colorPrimaryDark">
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/skipButton"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
+        android:src="@drawable/backicon"
+        android:layout_margin="20dp"
+        android:layout_alignParentTop="true"
+        app:elevation="4dp"
+        app:backgroundTint="@color/colorPrimaryDark"
+
+        android:onClick="backPressed"/>
+
+
+
+    <TextView
+        android:id="@+id/settingsText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="30dp"
+        android:text="About"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:textColor="@color/colorAccent"
+        />
+
+
+    <android.support.v7.widget.CardView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="30dp"
+    android:layout_marginStart="30dp"
+    android:layout_marginTop="30dp"
+    android:layout_below="@+id/settingsText"
+    app:cardBackgroundColor="@color/colorPrimaryMedium"
+    app:cardCornerRadius="3dp"
+    app:cardElevation="5dp"
+    android:focusable="true"
+    android:clickable="true"
+        android:id="@+id/addCardView"
+    >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hitch Tag"
+            android:textSize="25sp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:text="@string/brandText"
+                android:layout_margin="10dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Other products"
+                android:textSize="18sp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1 "
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:src="@drawable/hitchlogo"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:tint="@color/themeColor0"
+
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hitch Pet"
+                    android:textSize="18sp"
+
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp"/>
+
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center">
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:tint="@color/colorAccent"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:src="@drawable/hitchlogo"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hitch Tag"
+                    android:textSize="18sp"
+
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp"/>
+            </LinearLayout>
+        </LinearLayout>
+        </LinearLayout>
+</android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="30dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="40dp"
+        android:layout_below="@+id/addCardView"
+        app:cardBackgroundColor="@color/colorPrimaryMedium"
+        app:cardCornerRadius="3dp"
+        app:cardElevation="5dp"
+        android:focusable="true"
+        android:clickable="true"
+        android:id="@+id/volumeCardView"
+        >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_marginBottom="10dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Visit us"
+                android:textSize="25sp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="5dp">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1 "
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <android.support.design.widget.FloatingActionButton
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:src="@drawable/web"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:backgroundTint="?attr/colorPrimary"
+                        android:onClick="webClicked"
+                        />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="hitchtag.com"
+                        android:textSize="18sp"
+
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="10dp"/>
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <android.support.design.widget.FloatingActionButton
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:src="@drawable/facebook"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:backgroundTint="?attr/colorPrimary"
+                        android:onClick="fbClicked"
+                        />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="fb.com/hithtag"
+                        android:textSize="18sp"
+
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="10dp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </android.support.v7.widget.CardView>
+
+
+</RelativeLayout>

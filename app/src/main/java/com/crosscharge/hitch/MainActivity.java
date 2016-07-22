@@ -3,9 +3,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
@@ -15,37 +12,25 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
-import android.content.res.Resources;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.BitmapRegionDecoder;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.Rect;
-import android.graphics.drawable.TransitionDrawable;
 import android.net.Uri;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore;
-import android.provider.SyncStateContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.PopupMenu;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.DecelerateInterpolator;
-import android.view.inputmethod.InputMethodManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
@@ -58,11 +43,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.UUID;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -91,7 +74,8 @@ public class MainActivity extends AppCompatActivity {
     private ImageView hitchLogoTop;
     public boolean tabSelectedFlag = false;
 
-
+    //Animations
+    private Animation fab_open,fab_close;
 
     // bluetooth
     BluetoothAdapter bluetoothAdapter;
@@ -110,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        startTrackingServiceButton = (Button)findViewById(R.id.trackingServiceButton);
+
 
 
         helper = new DbHelper(this);
@@ -143,8 +127,18 @@ public class MainActivity extends AppCompatActivity {
         findButton=(FloatingActionButton)findViewById(R.id.findbutton);
         trackButton=(FloatingActionButton)findViewById(R.id.trackbutton);
         trainButton=(FloatingActionButton)findViewById(R.id.trainbutton);
+
+
+        //Animations
+        fab_open = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_open);
+        fab_close = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.fab_closed);
+
+        animateFabs();
+
         refreshButton=(FloatingActionButton)findViewById(R.id.refresh);
         tagSettingsButton=(FloatingActionButton)findViewById(R.id.tagSettings);
+
+
 //        tagRange=(SwitchButton)findViewById(R.id.rangeSwitch);
 
         //change 3 to the number of tags added
@@ -301,13 +295,52 @@ public class MainActivity extends AppCompatActivity {
 //        });
     }
 
-    @Override
+   @Override
     protected void onStart() {
+      /*  if(getIntent().hasExtra("tagStatus"))
+        {
+            tagStatus.setText(getIntent().getStringExtra("tagStatus"));
+        }*/
+
 
             setCurrentTheme((Integer.parseInt(helper.getHitchTagThemeColors().get(selectedTag))));
+        /*switch (tagStatus.getText().toString())
+        {
+            case "Connected":
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        animateFabs();
+                        tagStatusImage.setImageResource(R.drawable.connected_statusicon);
+                    }
+                });
 
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+                break;
+            case "Nearby":
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                       animateFabs();
+                        tagStatusImage.setImageResource(R.drawable.nearby_statusicon);
+                    }
+                });
+
+                break;
+            case "N.A.":
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        animateFabs();
+                        tagStatusImage.setImageResource(R.drawable.na_status);
+                    }
+                });
+
+                break;
+
+
+        }*/
+            //BitmapFactory.Options options = new BitmapFactory.Options();
+            //options.inPreferredConfig = Bitmap.Config.ARGB_8888;
 //            Bitmap bitmap = BitmapFactory.decodeFile(path, options);
            // tagImage.setImageBitmap(bitmap);
             tabLayout.getTabAt(selectedTag).setText(helper.getHitchTagList().get(selectedTag).getName());
@@ -403,17 +436,32 @@ public class MainActivity extends AppCompatActivity {
                                 tagList.set(i, new HitchTag(getApplicationContext(), device));
                             }
                         }
-                        if(tagList.get(pos).deviceAvailable()){
+                        if(tagList.get(pos).deviceAvailable() && !tagList.get(pos).connected()){
                             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent("available"));
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tagStatus.setText("Nearby");
+                                    tagStatusImage.setImageResource(R.drawable.nearby_statusicon);
+                                    //animateFabs();
 
-                            tagStatus.setText("Nearby");
-                            tagStatusImage.setBackgroundResource(R.drawable.nearby_statusicon);
+                                }
+                            });
+
+
                         }
-                        else{
+                        else   if(!tagList.get(pos).deviceAvailable()){
                             // disable this
                             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent("unavailable"));
-                            tagStatus.setText("N.A.");
-                            tagStatusImage.setBackgroundResource(R.drawable.stat_unavailable);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tagStatus.setText("N.A.");
+                                    tagStatusImage.setImageResource(R.drawable.na_status);
+                                   // animateFabs();
+                                }
+                            });
+
                         }
                     }
                 }
@@ -456,8 +504,12 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
+                    if(!tagList.get(pos).connected())
+                    {
+                        tagList.get(pos).connect();
+                    }
 
-                    tagList.get(pos).connect();
+
                 }
             });
         }
@@ -468,7 +520,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        final CharSequence[] options = { "Take Photo", "Choose from Gallery","Cancel" };
+        final CharSequence[] options = {  "Choose from Gallery","Cancel" };
 
 
 
@@ -482,24 +534,12 @@ public class MainActivity extends AppCompatActivity {
 
             public void onClick(DialogInterface dialog, int item) {
 
-                if (options[item].equals("Take Photo"))
+            if (options[item].equals("Choose from Gallery"))
 
                 {
 
-                    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                        startActivityForResult(takePictureIntent, 1);
-                    }
-
-                }
-
-                else if (options[item].equals("Choose from Gallery"))
-
-                {
-
-                    Intent intent = new   Intent(Intent.ACTION_PICK,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-
-                    startActivityForResult(intent, 2);
+                    Intent gallery_Intent=new Intent (getApplicationContext(),GalleryUtil.class);
+                    startActivityForResult(gallery_Intent,GALLERY_ACTIVITY_CODE);
 
                 }
 
@@ -524,36 +564,8 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
 
-            if (requestCode == 1) {
 
-
-                try {
-
-
-
-                    Bitmap bitmap;
-
-
-                    if(data.getData()==null){
-                        bitmap = (Bitmap)data.getExtras().get("data");
-                    }else{
-                        bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), data.getData());
-                    }
-
-
-
-                    tagImage.setImageBitmap(bitmap);
-                    storeImage(bitmap);
-
-
-
-                } catch (Exception e) {
-
-                    e.printStackTrace();
-
-                }
-
-            } else if (requestCode == 2) {
+            if (requestCode == 2) {
 
                 Intent gallery_Intent = new Intent(getApplicationContext(), GalleryUtil.class);
                 startActivityForResult(gallery_Intent, GALLERY_ACTIVITY_CODE);
@@ -606,19 +618,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onTrackButtonPressed(View v) {
+        trackButton.setClickable(false);
         // here for track button onclick to do
-        HitchTag.trakHitch = true;
-//        tagList.get(pos).trackHitchTag();
-
         tagList.get(pos).writeCharasLevel(Constants.UUIDS.LINK_LOSS, Constants.ALERT_HIGH);
 
-        Intent findIntent = new Intent(MainActivity.this,fService.class);
-        findIntent.putExtra("device",tagList.get(pos).getDevice());
-        startService(findIntent);
+        Intent serviceIntent = new Intent(MainActivity.this,fService.class);
+        serviceIntent.putExtra("device",tagList.get(pos).getDevice());
+        serviceIntent.putExtra("deviceaddress",tagList.get(pos).getAddress());
+        serviceIntent.putExtra("trackingModeLong",trackingModeLong);
+        serviceIntent.setAction("fore");
+//        serviceIntent.setAction("trackingService");
+        Log.d("starting","starting service");
 
+        startService(serviceIntent);
+        trackButton.setClickable(true);
     }
 
     public void onFindButtonPressed(View v) {
+        findButton.setClickable(false);
         // here for find button onclick to do
 //        HitchTag.trakHitch = true;
 //        tagList.get(pos).findHitchTag();
@@ -627,28 +644,64 @@ public class MainActivity extends AppCompatActivity {
         Intent findIntent = new Intent(MainActivity.this,StrengthBars.class);
         findIntent.putExtra("device",tagList.get(pos).getDevice());
         startActivity(findIntent);
+        findButton.setClickable(true);
     }
 
     public void onTrainButtonPressed(View v) {
+        trainButton.setClickable(false);
         // here for train button onclick to do
         tagList.get(pos).trainHitchTag();
+        trainButton.setClickable(true);
     }
 
     public void onRefreshPressed(View v) {
         // here for refresh button onclick to do
+
+
+
         scanLeDevice(true);
     }
 
     public void onConnectPressed(View v) {
         // here for refresh button onclick to do
-        if (!tagList.isEmpty()){
+    if(tagStatus.getText().toString().equals("N.A."))
+    {
+        Toast.makeText(this,"Tag not nearby", Toast.LENGTH_LONG).show();}
+        else  if(tagStatus.getText().toString().equals("Nearby"))
+    {
+
+        if (!tagList.isEmpty() &&!tagList.get(tagList.size() - 1 ).connected()){
             tagList.get(tagList.size() - 1 ).connect();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                   animateFabs();
+                    tagStatus.setText("Connected");
+                    tagStatusImage.setImageResource(R.drawable.connected_statusicon);
+                }
+            });
+
+
+
+
         }
     }
+        else if(tagStatus.getText().toString().equals("Connected"))
+    {
+        Toast.makeText(this,"Tag already connected", Toast.LENGTH_LONG).show();
+    }
+
+
+
+
+    }
+
 
     public void onTagSettingsPressed(View v) {
         Intent i=new Intent(this, TagSettingsActivity.class);
+
         //put the selected tag name to refer to change settings in other activity
+        i.putExtra("tagStatus",tagStatus.getText().toString());
         i.putExtra("tag",selectedTag+"");
         startActivity(i);
 
@@ -656,32 +709,14 @@ public class MainActivity extends AppCompatActivity {
         // here for tag settings button onclick to do
         //tagList.get(pos).disconnect();
     }
-    public void onSettingsPressed(View v) {
-        /*PopupMenu popup = new PopupMenu(MainActivity.this,v);
-        popup.getMenuInflater()
-                .inflate(R.menu.main, popup.getMenu());
-
-        //registering popup with OnMenuItemClickListener
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            public boolean onMenuItemClick(MenuItem item) {
-                int id = item.getItemId();
-                if (id == R.id.action_settings) {
-                    return true;
-                }
-                else if(id == R.id.action_add){
-                    startActivity(new Intent(MainActivity.this, ScanActivity.class));
-                }
-                return true;
-            }
-        });
-
-        popup.show(); */
-
-        Intent i=new Intent(this,SettingsActivity.class);
+    public void onInfoPressed(View v) {
+        Intent i=new Intent(this,InfoActivity.class);
+        i.putExtra("tag",selectedTag+"");
         startActivity(i);
         overridePendingTransition(R.anim.fade_in,R.anim.fade_out);
 
     }
+/*
 
     public void playAlarm(){
         Intent startIntent = new Intent(MainActivity.this, AlarmService.class);
@@ -694,6 +729,7 @@ public class MainActivity extends AppCompatActivity {
         stopIntent.setAction(Constants.NOTIFICATION.STOPFOREGROUND_ACTION);
         startService(stopIntent);
     }
+*/
 
 
 
@@ -731,6 +767,8 @@ public class MainActivity extends AppCompatActivity {
             }else if(msg.what == 69){
                 Toast.makeText(context, "Tag Connected", Toast.LENGTH_SHORT).show();
 
+
+
             }
         }
     }
@@ -748,37 +786,55 @@ public class MainActivity extends AppCompatActivity {
         switch (id)
         {
             case 0:
-                pawImage.setColorFilter(getResources().getColor(R.color.themeColor0), PorterDuff.Mode.SRC_IN);
-                findButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor0)));
-                trackButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor0)));
-                trainButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor0)));
-                refreshButton.setColorFilter(getResources().getColor(R.color.themeColor0), PorterDuff.Mode.SRC_IN);
-                tagSettingsButton.setColorFilter(getResources().getColor(R.color.themeColor0), PorterDuff.Mode.SRC_IN);
-                hitchLogoTop.setColorFilter(getResources().getColor(R.color.themeColor0), PorterDuff.Mode.SRC_IN);
-                tagImage.setBorderColor(getResources().getColor(R.color.themeColor0));
-                tagRange.setTintColor(getResources().getColor(R.color.themeColor0));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        pawImage.setColorFilter(getResources().getColor(R.color.themeColor0), PorterDuff.Mode.SRC_IN);
+                        findButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor0)));
+                        trackButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor0)));
+                        trainButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor0)));
+                        refreshButton.setColorFilter(getResources().getColor(R.color.themeColor0), PorterDuff.Mode.SRC_IN);
+                        tagSettingsButton.setColorFilter(getResources().getColor(R.color.themeColor0), PorterDuff.Mode.SRC_IN);
+                        hitchLogoTop.setColorFilter(getResources().getColor(R.color.themeColor0), PorterDuff.Mode.SRC_IN);
+                        tagImage.setBorderColor(getResources().getColor(R.color.themeColor0));
+                        tagRange.setTintColor(getResources().getColor(R.color.themeColor0));
+                    }
+                });
+
                 break;
             case 1:
-                pawImage.setColorFilter(getResources().getColor(R.color.themeColor1), PorterDuff.Mode.SRC_IN);
-                findButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor1)));
-                trackButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor1)));
-                trainButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor1)));
-                refreshButton.setColorFilter(getResources().getColor(R.color.themeColor1), PorterDuff.Mode.SRC_IN);
-                tagSettingsButton.setColorFilter(getResources().getColor(R.color.themeColor1), PorterDuff.Mode.SRC_IN);
-                hitchLogoTop.setColorFilter(getResources().getColor(R.color.themeColor1), PorterDuff.Mode.SRC_IN);
-                tagImage.setBorderColor(getResources().getColor(R.color.themeColor1));
-                tagRange.setTintColor(getResources().getColor(R.color.themeColor1));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        pawImage.setColorFilter(getResources().getColor(R.color.themeColor1), PorterDuff.Mode.SRC_IN);
+                        findButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor1)));
+                        trackButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor1)));
+                        trainButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor1)));
+                        refreshButton.setColorFilter(getResources().getColor(R.color.themeColor1), PorterDuff.Mode.SRC_IN);
+                        tagSettingsButton.setColorFilter(getResources().getColor(R.color.themeColor1), PorterDuff.Mode.SRC_IN);
+                        hitchLogoTop.setColorFilter(getResources().getColor(R.color.themeColor1), PorterDuff.Mode.SRC_IN);
+                        tagImage.setBorderColor(getResources().getColor(R.color.themeColor1));
+                        tagRange.setTintColor(getResources().getColor(R.color.themeColor1));
+                    }
+                });
+
                 break;
             case 2:
-                pawImage.setColorFilter(getResources().getColor(R.color.themeColor2), PorterDuff.Mode.SRC_IN);
-                findButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor2)));
-                trackButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor2)));
-                trainButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor2)));
-                refreshButton.setColorFilter(getResources().getColor(R.color.themeColor2), PorterDuff.Mode.SRC_IN);
-                tagSettingsButton.setColorFilter(getResources().getColor(R.color.themeColor2), PorterDuff.Mode.SRC_IN);
-                hitchLogoTop.setColorFilter(getResources().getColor(R.color.themeColor2), PorterDuff.Mode.SRC_IN);
-                tagImage.setBorderColor(getResources().getColor(R.color.themeColor2));
-                tagRange.setTintColor(getResources().getColor(R.color.themeColor2));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        pawImage.setColorFilter(getResources().getColor(R.color.themeColor2), PorterDuff.Mode.SRC_IN);
+                        findButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor2)));
+                        trackButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor2)));
+                        trainButton.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.themeColor2)));
+                        refreshButton.setColorFilter(getResources().getColor(R.color.themeColor2), PorterDuff.Mode.SRC_IN);
+                        tagSettingsButton.setColorFilter(getResources().getColor(R.color.themeColor2), PorterDuff.Mode.SRC_IN);
+                        hitchLogoTop.setColorFilter(getResources().getColor(R.color.themeColor2), PorterDuff.Mode.SRC_IN);
+                        tagImage.setBorderColor(getResources().getColor(R.color.themeColor2));
+                        tagRange.setTintColor(getResources().getColor(R.color.themeColor2));
+                    }
+                });
+
                 break;
         }
     }
@@ -879,18 +935,29 @@ public class MainActivity extends AppCompatActivity {
         scanLeDevice(true);
     }
 
-    public void serviceStart(View v){
 
-        tagList.get(pos).writeCharasLevel(Constants.UUIDS.LINK_LOSS, Constants.ALERT_HIGH);
+    public void animateFabs(){
 
-        Intent serviceIntent = new Intent(MainActivity.this,fService.class);
-        serviceIntent.putExtra("device",tagList.get(pos).getDevice());
-        serviceIntent.putExtra("deviceaddress",tagList.get(pos).getAddress());
-        serviceIntent.putExtra("trackingModeLong",trackingModeLong);
-        serviceIntent.setAction("fore");
-//        serviceIntent.setAction("trackingService");
-        Log.d("starting","starting service");
-        startService(serviceIntent);
+        if(!tagList.get(pos).connected()){
 
+
+            trackButton.startAnimation(fab_close);
+            trackButton.setClickable(false);
+            trainButton.startAnimation(fab_close);
+            trainButton.setClickable(false);
+            findButton.startAnimation(fab_close);
+            findButton.setClickable(false);
+
+        } else {
+
+
+            trackButton.startAnimation(fab_open);
+            trackButton.setClickable(true);
+            trainButton.startAnimation(fab_open);
+            trainButton.setClickable(true);
+            findButton.startAnimation(fab_open);
+            findButton.setClickable(true);
+
+        }
     }
 }

@@ -34,7 +34,7 @@
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".SettingsActivity" />
+        <activity android:name=".InfoActivity" />
         <activity android:name=".TagSettingsActivity" />
         <activity
             android:name=".GalleryUtil"

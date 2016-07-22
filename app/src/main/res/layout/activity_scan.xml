@@ -152,7 +152,9 @@
             android:layout_height="match_parent"
             android:id="@+id/viewSwitcher"
             >
-        <FrameLayout
+
+
+            <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
         <com.skyfishjy.library.RippleBackground
@@ -184,13 +186,28 @@
                 android:tint="?attr/colorPrimary"
                 />
         </FrameLayout>
-            <ListView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/scanListView"
-                android:layout_below="@+id/scanButton"
-                android:layout_centerHorizontal="true"
-                android:layout_marginStart="85dp"/>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <ListView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/scanListView"
+                    android:layout_marginBottom="80dp"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginStart="85dp"/>
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/rescanButton"
+                    android:layout_width="65dp"
+                    android:layout_height="65dp"
+                    android:src="@drawable/refreshwhite"
+                    android:layout_margin="20dp"
+                    android:layout_alignParentBottom="true"
+                    android:layout_centerHorizontal="true"
+                    app:elevation="4dp"
+                    app:backgroundTint="@color/colorPrimaryDark"
+                    android:onClick="rescanPressed"/>
+            </RelativeLayout>
         </ViewSwitcher>
     </LinearLayout>
     <LinearLayout
