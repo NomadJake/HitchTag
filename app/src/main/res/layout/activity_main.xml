@@ -230,7 +230,7 @@
         android:clickable="true"
         android:focusable="true"
         android:scaleType="fitCenter"
-        android:onClick="onConnectPressed"
+
         android:tint="?attr/colorPrimary"/>
 
     <LinearLayout
@@ -397,19 +397,48 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="0.48"
-                android:gravity="center">
-            <android.support.design.widget.FloatingActionButton
-                android:id="@+id/trackbutton"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:rippleColor="@color/colorAccent"
-                android:clickable="true"
-                android:focusable="true"
-                android:src="@drawable/track"
-                app:elevation="2dp"
-                app:backgroundTint="@color/themeColor0"
-                android:layout_gravity="center"
-                android:onClick="onTrackButtonPressed"/>
+                android:gravity="center"
+                android:orientation="horizontal">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="end">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/colorAccent"
+                        android:layout_marginTop="10dp"
+                        android:textSize="18sp"
+                        android:layout_marginEnd="30dp"/>
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.85"
+                    android:gravity="center">
+                    <android.support.design.widget.FloatingActionButton
+                        android:id="@+id/trackbutton"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        app:rippleColor="@color/colorAccent"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:src="@drawable/track"
+                        app:elevation="2dp"
+                        app:backgroundTint="@color/themeColor0"
+
+                        android:onClick="onTrackButtonPressed"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                </LinearLayout>
+
+
 
 
 

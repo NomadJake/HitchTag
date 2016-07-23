@@ -9,7 +9,17 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.crosscharge.hitch.StrengthBars">
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/backButton"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
+        android:src="@drawable/backicon"
+        android:layout_margin="20dp"
+        android:layout_alignParentTop="true"
+        app:elevation="4dp"
+        app:backgroundTint="@color/colorPrimaryDark"
 
+        android:onClick="backPressed"/>
     <com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar
         android:layout_width="320dp"
         android:layout_height="14dp"
@@ -41,8 +51,8 @@
         android:layout_height="wrap_content"
         android:id="@+id/progressBar2"
         android:max="4"
-        android:layout_marginTop="54dp"
-        android:layout_alignParentTop="true"
+        android:layout_below="@+id/backButton"
+        android:layout_marginTop="24dp"
         android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

@@ -135,9 +135,9 @@ public class TagSettingsActivity extends AppCompatActivity implements ColorPicke
         ii.putExtra("tagStatus",tagStatusSaved);
         SharedPreferences settings = getSharedPreferences(Constants.PREFS_NAME, 0);
         if (settings.getInt("user_first_time", 1)==1) {
-
-            startActivity(ii);
             settings.edit().putInt("user_first_time",2).apply();
+            startActivity(ii);
+
         }
         else
         {

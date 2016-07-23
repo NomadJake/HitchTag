@@ -45,6 +45,15 @@ dependencies {
     compile 'com.github.chenupt.android:springindicator:1.0.2@aar'
     compile 'com.akexorcist:RoundCornerProgressBar:2.0.3'
     compile 'com.dmallcott:progressfab:1.0.0'
+    compile ('com.github.worker8:tourguide:1.0.17-SNAPSHOT@aar'){
+        transitive=true
+    }
+}
+repositories {
+    mavenCentral()
+    maven(){
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+    }
 }
 
 

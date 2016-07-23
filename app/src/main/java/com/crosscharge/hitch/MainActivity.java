@@ -14,6 +14,7 @@ import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -48,11 +50,15 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import tourguide.tourguide.Overlay;
+import tourguide.tourguide.Pointer;
+import tourguide.tourguide.ToolTip;
+import tourguide.tourguide.TourGuide;
 
 
 public class MainActivity extends AppCompatActivity {
 
-
+    TourGuide mTourGuideHandler;
     public Boolean trackingModeLong = true;
     public ImageView pawImage;
     public Button startTrackingServiceButton;
@@ -91,6 +97,8 @@ public class MainActivity extends AppCompatActivity {
     //Tag Images path
     public String pet_dp;
 
+    //Shared Preferences
+    SharedPreferences settings;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -111,6 +119,62 @@ public class MainActivity extends AppCompatActivity {
 
         bottomLinearLayout=(LinearLayout)findViewById(R.id.bottomLinearLayout);
         pawImage=(ImageView)findViewById(R.id.pawImage);
+        pawImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+
+                // here for refresh button onclick to do
+                if(tagStatus.getText().toString().equals("N.A."))
+                {
+                    Toast.makeText(MainActivity.this,"Tag not nearby", Toast.LENGTH_LONG).show();}
+                else  if(tagStatus.getText().toString().equals("Nearby"))
+                {
+
+                    if (!tagList.isEmpty() &&!tagList.get(tagList.size() - 1 ).connected()){
+                        tagList.get(tagList.size() - 1 ).connect();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                animateFabs();
+                                tagStatus.setText("Connected");
+                                tagStatusImage.setImageResource(R.drawable.connected_statusicon);
+                            }
+                        });
+
+
+
+
+                    }
+                }
+                else if(tagStatus.getText().toString().equals("Connected"))
+                {
+                    Toast.makeText(MainActivity.this,"Tag already connected", Toast.LENGTH_LONG).show();
+                }
+                if(tagStatus.getText().equals("Connected"))
+                {
+                    if(settings.getInt("user_first_time",2)==2)
+
+                    {
+                    mTourGuideHandler.cleanUp();
+                    ToolTip toolTip = new ToolTip()
+                            .setTitle("Track your pet.")
+                            .setDescription("Tap on the Track button to start tracking")
+                            .setTextColor(Color.parseColor("#bdc3c7"))
+                            .setBackgroundColor(Color.parseColor("#e74c3c"))
+                            .setShadow(true)
+                            .setGravity(Gravity.TOP);
+                    mTourGuideHandler.setToolTip(toolTip)
+                            .setOverlay(new Overlay())
+                            .playOn(trackButton);}
+
+                }
+
+
+
+            }
+        });
 
         // tabs
         tabLayout = (TabLayout) findViewById(R.id.tabLayout);
@@ -273,6 +337,8 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+
+
         IntentFilter bleStateFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         bleStateFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(bleStateReceiver, bleStateFilter); // Don't forget to unregister during onDestroy
@@ -286,6 +352,25 @@ public class MainActivity extends AppCompatActivity {
 //                startService(serviceIntent);
 //            }
 //        });
+
+    settings = getSharedPreferences(Constants.PREFS_NAME, 0);
+        if(settings.getInt("user_first_time",2)==2)
+
+        {
+            ToolTip toolTip = new ToolTip()
+                    .setTitle("Welcome!")
+                    .setDescription("Refresh the tag status, keep your Hitch nearby")
+                    .setTextColor(Color.parseColor("#bdc3c7"))
+                    .setBackgroundColor(Color.parseColor("#e74c3c"))
+                    .setShadow(true)
+                    .setGravity(Gravity.RIGHT);
+             mTourGuideHandler = TourGuide.init(this).with(TourGuide.Technique.Click)
+                    .setPointer(new Pointer())
+                    .setToolTip(toolTip)
+                    .setOverlay(new Overlay())
+                    .playOn(refreshButton);
+        }
+
     }
 
    @Override
@@ -632,19 +717,33 @@ public class MainActivity extends AppCompatActivity {
         Log.d("starting","starting service");
 
         startService(serviceIntent);
+        if(settings.getInt("user_first_time",2)==2)
+
+        {
+        mTourGuideHandler.cleanUp();
+        mTourGuideHandler.setToolTip(new ToolTip().setTitle("Ring tag").setDescription("Tap on the Ring Button to ring the tag/ train your pet."))
+                .setOverlay(new Overlay())
+                .playOn(trainButton);}
         trackButton.setClickable(true);
     }
 
     public void onFindButtonPressed(View v) {
         findButton.setClickable(false);
+
         // here for find button onclick to do
 //        HitchTag.trakHitch = true;
 //        tagList.get(pos).findHitchTag();
         tagList.get(pos).writeCharasLevel(Constants.UUIDS.LINK_LOSS, Constants.ALERT_HIGH);
 
+        trackButton.setClickable(true);
         Intent findIntent = new Intent(MainActivity.this,StrengthBars.class);
         findIntent.putExtra("device",tagList.get(pos).getDevice());
         startActivity(findIntent);
+        if(settings.getInt("user_first_time",2)==2)
+
+        {
+        mTourGuideHandler.cleanUp();
+        settings.edit().putInt("user_first_time",3).apply();}
         findButton.setClickable(true);
     }
 
@@ -652,10 +751,29 @@ public class MainActivity extends AppCompatActivity {
         trainButton.setClickable(false);
         // here for train button onclick to do
         tagList.get(pos).trainHitchTag();
+        if(settings.getInt("user_first_time",2)==2)
+
+        {
+            mTourGuideHandler.cleanUp();
+            mTourGuideHandler.setToolTip(new ToolTip().setTitle("Find tag").setDescription("Find your tag"))
+                    .setOverlay(new Overlay())
+                    .playOn(findButton);
+        }
         trainButton.setClickable(true);
     }
 
     public void onRefreshPressed(View v) {
+        if(tagStatus.getText().equals("Nearby"))
+        {
+            if(settings.getInt("user_first_time",2)==2)
+
+            {
+                mTourGuideHandler.cleanUp();
+                mTourGuideHandler.setToolTip(new ToolTip().setTitle("Connect to Tag").setDescription("Tap on the paw to connect to Hitch"))
+                        .setOverlay(new Overlay())
+                        .playOn(pawImage);
+            }
+        }
         // here for refresh button onclick to do
 
 
@@ -664,35 +782,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onConnectPressed(View v) {
-        // here for refresh button onclick to do
-    if(tagStatus.getText().toString().equals("N.A."))
-    {
-        Toast.makeText(this,"Tag not nearby", Toast.LENGTH_LONG).show();}
-        else  if(tagStatus.getText().toString().equals("Nearby"))
-    {
-
-        if (!tagList.isEmpty() &&!tagList.get(tagList.size() - 1 ).connected()){
-            tagList.get(tagList.size() - 1 ).connect();
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                   animateFabs();
-                    tagStatus.setText("Connected");
-                    tagStatusImage.setImageResource(R.drawable.connected_statusicon);
-                }
-            });
-
-
-
-
-        }
-    }
-        else if(tagStatus.getText().toString().equals("Connected"))
-    {
-        Toast.makeText(this,"Tag already connected", Toast.LENGTH_LONG).show();
-    }
-
-
 
 
     }
