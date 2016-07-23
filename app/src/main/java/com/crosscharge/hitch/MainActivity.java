@@ -104,9 +104,8 @@ public class MainActivity extends AppCompatActivity {
         stopAll = (Button)findViewById(R.id.buttonStopAll);
 
         setContentView(R.layout.activity_main);
-        SharedPreferences settings = getSharedPreferences(Constants.PREFS_NAME, 0);
-        //record the fact that user has added atleast one tag
-        settings.edit().putBoolean("user_first_time", false).commit();
+
+
         //Tag Images create Directory
 
 
@@ -211,13 +210,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        final Handler handler1 = new Handler();
-        handler1.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                scanLeDevice(true);
-            }
-        }, 5000);
+
 
 
 
@@ -304,6 +297,14 @@ public class MainActivity extends AppCompatActivity {
 
 
             setCurrentTheme((Integer.parseInt(helper.getHitchTagThemeColors().get(selectedTag))));
+
+       final Handler handler1 = new Handler();
+       handler1.postDelayed(new Runnable() {
+           @Override
+           public void run() {
+               scanLeDevice(true);
+           }
+       }, 5000);
         /*switch (tagStatus.getText().toString())
         {
             case "Connected":

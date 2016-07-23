@@ -74,11 +74,7 @@ public class TagSettingsActivity extends AppCompatActivity implements ColorPicke
         chosenThemeColor=colorPosition;
         Log.d("Color", "TEST color: "+chosenThemeColor);
     }
-    public void backPressed(View v)
-    {
-        onBackPressed();
 
-    }
     public void deletePressed(View v)
     {
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
@@ -122,26 +118,32 @@ public class TagSettingsActivity extends AppCompatActivity implements ColorPicke
         helper.updateHitchThemeColor(tag,chosenThemeColor);
         helper.updateHitchTagName(tag,TagNameEditText.getText().toString());
         Log.d("tagName",TagNameEditText.getText().toString());
+        onBackPressed();
         //tagList = helper.getHitchTagList();
         //Log.d("COLOR",tagList.get(0).getThemeColor()+"");
         //pass chosenTheme to the mainActivity and setTheme onResume VAZE
-        Intent ii=new Intent(this,MainActivity.class);
-        ii.putExtra("tagStatus",tagStatusSaved);
-        SharedPreferences settings = getSharedPreferences(Constants.PREFS_NAME, 0);
-        if (settings.getBoolean("my_first_time", false)) {
 
-            startActivity(ii);
-        }
-        else
-        {
-            Log.d("not first time","not fit");
-            onBackPressed();
-        }
+    }
+    public void backPressed(View v)
+    {
+        onBackPressed();
     }
     @Override
     public void onBackPressed()
     {
-        super.onBackPressed();
+        Intent ii=new Intent(this,MainActivity.class);
+        ii.putExtra("tagStatus",tagStatusSaved);
+        SharedPreferences settings = getSharedPreferences(Constants.PREFS_NAME, 0);
+        if (settings.getInt("user_first_time", 1)==1) {
+
+            startActivity(ii);
+            settings.edit().putInt("user_first_time",2).apply();
+        }
+        else
+        {
+            Log.d("not first time","not fit");
+            super.onBackPressed();
+        }
         overridePendingTransition(R.anim.fade_in,R.anim.fade_out);
     }
     public void setCurrentTheme(int id)

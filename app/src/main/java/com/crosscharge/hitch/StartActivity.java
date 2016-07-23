@@ -8,6 +8,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import github.chenupt.springindicator.SpringIndicator;
@@ -17,21 +20,30 @@ public class StartActivity extends AppCompatActivity {
     int[] mResources= {R.drawable.p1, R.drawable.p2, R.drawable.p3,};
     FloatingActionButton addAHitchFab;
     SpringIndicator springIndicator;
+    ImageView arrowIcon,lArrowIcon;
     TextView text;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SharedPreferences settings = getSharedPreferences(Constants.PREFS_NAME, 0);
 
-        if (settings.getBoolean("user_first_time", true)) {
+        if (settings.getInt("user_first_time",0)==0) {
             //the app is being launched for first time
 
-
-
         setContentView(R.layout.activity_start);
+            final Animation hide=AnimationUtils.loadAnimation(getApplicationContext(),R.anim.fab_closed);
+            final Animation show=AnimationUtils.loadAnimation(getApplicationContext(),R.anim.fab_open);
         appShowcaseViewPager= (ViewPager) findViewById(R.id.viewpager);
-        addAHitchFab=(FloatingActionButton)findViewById(R.id.addButton);
-        text=(TextView)findViewById(R.id.addText);
+            arrowIcon=(ImageView)findViewById(R.id.RarrowIcon);
+            lArrowIcon=(ImageView)findViewById(R.id.LarrowIcon);
+            addAHitchFab=(FloatingActionButton)findViewById(R.id.addAHitch);
+            text=(TextView)findViewById(R.id.addText);
+            lArrowIcon.startAnimation(hide);
+            text.startAnimation(hide);
+            addAHitchFab.startAnimation(hide);
+            addAHitchFab.setTag("hidden");
+       // addAHitchFab=(FloatingActionButton)findViewById(R.id.addButton);
+        //text=(TextView)findViewById(R.id.addText);
         String[] appText=
                 { getResources().getString(R.string.appText1),
                         getResources().getString(R.string.appText2), getResources().getString(R.string.appText3)};
@@ -48,10 +60,33 @@ public class StartActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 if(position==2)
+
                 {
-                    text.setVisibility(View.VISIBLE);
-                    addAHitchFab.setVisibility(View.VISIBLE);
+                    arrowIcon.startAnimation(hide);
+
+
+                    if(addAHitchFab.getTag().equals("hidden"))
+                    {
+                        addAHitchFab.setTag("shown");
+                        addAHitchFab.startAnimation(show);
+                        text.startAnimation(show);
+                    }
+                   // text.setVisibility(View.VISIBLE);
+                   // addAHitchFab.setVisibility(View.VISIBLE);
                 }
+                else
+                {
+                    arrowIcon.startAnimation(show);
+                }
+                if(position!=0)
+                {
+                    lArrowIcon.startAnimation(show);
+                }
+                else
+                {
+                    lArrowIcon.startAnimation(hide);
+                }
+
 
             }
 

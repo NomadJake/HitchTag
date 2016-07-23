@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -107,11 +108,10 @@ public class ScanActivity extends AppCompatActivity {
                     Log.d(TAG, device.toString());
                     if (!scanArrayList.contains(device)) {
                         if (!savedAddressArrayList.contains(device.getAddress())) {
-                            if (rssi > -65
-                                    //&& device.getName().equalsIgnoreCase("Hitch tag")
-                                    ) {
-                                scanArrayList.add(device);
-                                scanAdapter.notifyDataSetChanged();
+                            if (rssi > -65 && device.getName()!=null) {
+                                if(device.getName().equalsIgnoreCase("Hitch tag"))
+                                {scanArrayList.add(device);
+                                scanAdapter.notifyDataSetChanged();}
                             }
                             //
 
@@ -200,6 +200,9 @@ public class ScanActivity extends AppCompatActivity {
 
             // valid hitch tag. add to database
             helper.addNewHitchTag(gatt.getDevice());
+            //record the fact that user has added atleast one tag
+            SharedPreferences settings = getSharedPreferences(Constants.PREFS_NAME, 0);
+            settings.edit().putInt("user_first_time",1).apply();
             Log.d("count",helper.getHitchTagCount()+"");
             disconnect();
             Intent intent=new Intent(getApplicationContext(),TagSettingsActivity.class);
