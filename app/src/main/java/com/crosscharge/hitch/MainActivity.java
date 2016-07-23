@@ -139,7 +139,10 @@ public class MainActivity extends AppCompatActivity {
                             public void run() {
                                 animateFabs();
                                 tagStatus.setText("Connected");
-                                tagStatusImage.setImageResource(R.drawable.connected_statusicon);
+                                tagStatusImage.setVisibility(View.GONE);
+                                findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
+                                findViewById(R.id.avConnectedView).setVisibility(View.VISIBLE);
+
                             }
                         });
 
@@ -329,6 +332,14 @@ public class MainActivity extends AppCompatActivity {
                             break;
                         case BluetoothAdapter.STATE_ON:
                             scanLeDevice(true);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tagStatus.setText("Searching");
+                                    findViewById(R.id.avloadingIndicatorView).setVisibility(View.VISIBLE);
+                                    tagStatusImage.setVisibility(View.GONE);
+                                }
+                            });
                             break;
                         case BluetoothAdapter.STATE_TURNING_ON:
                             break;
@@ -382,14 +393,16 @@ public class MainActivity extends AppCompatActivity {
 
 
             setCurrentTheme((Integer.parseInt(helper.getHitchTagThemeColors().get(selectedTag))));
-
-       final Handler handler1 = new Handler();
-       handler1.postDelayed(new Runnable() {
+       runOnUiThread(new Runnable() {
            @Override
            public void run() {
-               scanLeDevice(true);
+               tagStatus.setText("Searching");
+               findViewById(R.id.avConnectedView).setVisibility(View.GONE);
+               findViewById(R.id.avloadingIndicatorView).setVisibility(View.VISIBLE);
+               tagStatusImage.setVisibility(View.GONE);
            }
-       }, 5000);
+       });
+       scanLeDevice(true);
         /*switch (tagStatus.getText().toString())
         {
             case "Connected":
@@ -488,17 +501,33 @@ public class MainActivity extends AppCompatActivity {
 //    }
 
     private void scanLeDevice(final boolean enable) {
+
         // true: start scan for 'SCAN_PERIOD' seconds
         // false: stop scan
 
         if (enable) {
+
+
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
+
                     bluetoothAdapter.stopLeScan(scanCallback);
+
+                    if(tagStatus.getText().equals("Searching"))
+                    {
+
+                        // if no tag found within specified time then set Status to N.A.
+                        tagStatus.setText("N.A.");
+                        tagStatusImage.setVisibility(View.VISIBLE);
+                        tagStatusImage.setImageResource(R.drawable.na_status);
+                        findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
+
+                    }
                 }
             }, Constants.BLE.SCAN_PERIOD);
             bluetoothAdapter.startLeScan(scanCallback);
+
         }
         else {
             bluetoothAdapter.stopLeScan(scanCallback);
@@ -512,6 +541,7 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+
                     Log.d(TAG, device.toString());
 
                     if(tagList.size() > 0){
@@ -520,35 +550,55 @@ public class MainActivity extends AppCompatActivity {
                                 // to enable these devices in the list, as they are available nearby
                                 pos = i;
                                 tagList.set(i, new HitchTag(getApplicationContext(), device));
-                            }
-                        }
-                        if(tagList.get(pos).deviceAvailable() && !tagList.get(pos).connected()){
-                            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent("available"));
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    tagStatus.setText("Nearby");
-                                    tagStatusImage.setImageResource(R.drawable.nearby_statusicon);
+                                LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent("available"));
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+
+                                        tagStatusImage.setVisibility(View.VISIBLE);
+                                        tagStatus.setText("Nearby");
+                                        tagStatusImage.setImageResource(R.drawable.nearby_statusicon);
+
+                                        findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
+                                        tagStatusImage.setVisibility(View.VISIBLE);}
                                     //animateFabs();
 
-                                }
-                            });
 
+                                });
 
+                            }
                         }
-                        else   if(!tagList.get(pos).deviceAvailable()){
-                            // disable this
+
+                       /* if(tagList.get(pos).deviceAvailable() && !tagList.get(pos).connected()){
+
+                            Log.d("Device Nearby","Device Nearby");
+                            //check log
+
+
+
+
+                        }*/
+                     /*  if(!tagList.get(pos).deviceAvailable()){
+                            //vaze even though tag is swithced off it shows that tag is available
+                            //this if condition is not satisfied even though tag is off
+                            //check log
+
                             LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent("unavailable"));
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    tagStatus.setText("N.A.");
+                                    Log.d("Device Not Available","Device Available");
+                                     tagStatus.setText("N.A.");
+                                    tagStatusImage.setVisibility(View.VISIBLE);
                                     tagStatusImage.setImageResource(R.drawable.na_status);
-                                   // animateFabs();
+
+                                        findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
+
+                                    //animateFabs();
                                 }
                             });
 
-                        }
+                        }*/
                     }
                 }
             });
@@ -778,7 +828,25 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        scanLeDevice(true);
+
+
+        if(tagStatus.getText().equals("Connected")||tagStatus.getText().equals("Searching"))
+        {
+            
+        }
+        else{
+            scanLeDevice(true);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    tagStatus.setText("Searching");
+                    findViewById(R.id.avConnectedView).setVisibility(View.GONE);
+                    findViewById(R.id.avloadingIndicatorView).setVisibility(View.VISIBLE);
+                    tagStatusImage.setVisibility(View.GONE);
+                }
+            });
+        }
+
     }
 
     public void onConnectPressed(View v) {
@@ -1023,6 +1091,14 @@ public class MainActivity extends AppCompatActivity {
     public void stopAll(View v){
         tagList.get(pos).stopAlarm();
         scanLeDevice(true);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                tagStatus.setText("Searching");
+                findViewById(R.id.avloadingIndicatorView).setVisibility(View.VISIBLE);
+                tagStatusImage.setVisibility(View.GONE);
+            }
+        });
     }
 
 

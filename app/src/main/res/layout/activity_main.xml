@@ -50,7 +50,8 @@
                                 android:layout_height="wrap_content"
                                 android:text="Stop"
                                 android:onClick="stopAll"
-                                android:id="@+id/buttonStopAll" />
+                                android:id="@+id/buttonStopAll"
+                                android:visibility="gone"/>
                         </LinearLayout>
                         <LinearLayout
                             android:layout_width="0dp"
@@ -268,6 +269,23 @@
                     android:textColor="#393467"
 
                     android:textSize="16sp"
+                    />
+                <com.wang.avi.AVLoadingIndicatorView
+                    android:id="@+id/avloadingIndicatorView"
+                    android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="visible"
+                app:indicator="BallClipRotate"
+                app:indicator_color="?attr/colorPrimary"
+                />
+                <com.wang.avi.AVLoadingIndicatorView
+                    android:id="@+id/avConnectedView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    app:indicator="BallClipRotatePulse"
+                    app:indicator_color="?attr/colorPrimary"
+
                     />
             </LinearLayout>
             <LinearLayout
