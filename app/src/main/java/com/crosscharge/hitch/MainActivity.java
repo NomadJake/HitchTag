@@ -393,6 +393,9 @@ public class MainActivity extends AppCompatActivity {
 
 
             setCurrentTheme((Integer.parseInt(helper.getHitchTagThemeColors().get(selectedTag))));
+
+       if(!tagStatus.getText().equals("Connected"))
+       {
        runOnUiThread(new Runnable() {
            @Override
            public void run() {
@@ -402,7 +405,7 @@ public class MainActivity extends AppCompatActivity {
                tagStatusImage.setVisibility(View.GONE);
            }
        });
-       scanLeDevice(true);
+       scanLeDevice(true);}
         /*switch (tagStatus.getText().toString())
         {
             case "Connected":
