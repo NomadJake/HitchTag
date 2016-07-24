@@ -1,5 +1,6 @@
 package com.crosscharge.hitch;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -65,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     private Button stopAll;
     private String TAG = MainActivity.class.getName();
     // tab related
-    TextView tagName, tagStatus;
+    public TextView tagName, tagStatus;
     CircleImageView tagImage;
     ImageView tagStatusImage;
     private TabLayout tabLayout;
@@ -99,6 +100,8 @@ public class MainActivity extends AppCompatActivity {
 
     //Shared Preferences
     SharedPreferences settings;
+    private Handler mHandler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -382,7 +385,60 @@ public class MainActivity extends AppCompatActivity {
                     .playOn(refreshButton);
         }
 
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
+                new IntentFilter("service-active"));
+
+
+//        mHandler = new Handler();
+//        startRepeatingTask();
+
     }
+
+//    Runnable mStatusChecker = new Runnable() {
+//        @Override
+//        public void run() {
+//            try {
+//            } finally {
+//                if(!isMyServiceRunning(fService.class)){
+//                    tagStatus.setText("stopped");
+//                }
+//                mHandler.postDelayed(mStatusChecker, 3000);
+//            }
+//        }
+//    };
+
+//    void startRepeatingTask() {
+//        mStatusChecker.run();
+//    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String message = intent.getStringExtra("status");
+            if(message.equals("active")){
+                tagStatus.setText("tracking");
+                tagStatusImage.setVisibility(View.VISIBLE);
+                tagStatusImage.setImageResource(R.drawable.nearby_statusicon);
+            }else if(message.equals("stopped")){
+                tagStatus.setText("stopped");
+                tagStatusImage.setVisibility(View.VISIBLE);
+                tagStatusImage.setImageResource(R.drawable.na_status);
+                findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
+            }
+            Log.d("receiver", "Got message: " + message);
+        }
+    };
 
    @Override
     protected void onStart() {
@@ -929,6 +985,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
+
     }
 
 

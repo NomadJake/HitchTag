@@ -39,7 +39,7 @@ public class fService extends Service {
 
     BluetoothDevice device;
     Context context;
-    Boolean keepTracking = true;
+    public Boolean keepTracking = true;
     Boolean kill = false;
     Boolean trackingModeLong;
     NotificationManager notificationManager;
@@ -122,14 +122,14 @@ public class fService extends Service {
 
             notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             Bitmap icon = BitmapFactory.decodeResource(getResources(),
-                    R.drawable.hitchlogo);
+                    R.drawable.hitchinlogo);
 
             builder = new NotificationCompat.Builder(context);
 
             builder.setContentTitle("Hitch");
             builder.setContentText("Lost Hitch tag !");
             builder.setSmallIcon(R.drawable.hitchinlogo);
-            builder.setLargeIcon(Bitmap.createScaledBitmap(icon, 200, 200, false));
+            builder.setLargeIcon(Bitmap.createScaledBitmap(icon, 300, 300, false));
             builder.setContentIntent(pendingIntent);
             builder.setOngoing(true);
 
@@ -144,7 +144,8 @@ public class fService extends Service {
 
             keepTracking = true;
 //            restartConnectedFlag = true;
-
+//            sendMessage(1);
+            new TrackingStatusThread().start();
             device = (BluetoothDevice) intent.getExtras().get("device");
             mBluetoothDeviceAddress = device.getAddress();
             if (device == null) {
@@ -255,6 +256,7 @@ public class fService extends Service {
                     } else {
                         writeCharasLevel(Constants.UUIDS.LINK_LOSS, Constants.ALERT_HIGH);
                         restartConnectedFlag = true;
+                        sendMessage(1);
                         if (trackingModeLong) {
                             mode = "Wide coverage";
                         } else {
@@ -298,6 +300,7 @@ public class fService extends Service {
                 e.printStackTrace();
             }
 
+            sendMessage(2);
             keepTracking = false;
             String pausedText = "Tracking Paused";
 
@@ -478,6 +481,27 @@ public class fService extends Service {
         }
     }
 
+    public class TrackingStatusThread extends Thread {
+
+        @Override
+        public void run() {
+            super.run();
+
+            while (true) {
+                if(keepTracking){
+                    sendMessage(1);
+                }else {
+                    sendMessage(2);
+                }
+                try {
+                    Thread.currentThread().sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     public void playAlarm() {
         Intent startIntent = new Intent(context, AlarmService.class);
         startIntent.setAction(Constants.NOTIFICATION.STARTFOREGROUND_ACTION);
@@ -532,6 +556,17 @@ public class fService extends Service {
         }
         deviceGatt.close();
         deviceGatt = null;
+    }
+
+    private void sendMessage(int i) {
+        Log.d("sender", "Broadcasting service started");
+        Intent intent = new Intent("service-active");
+        if (i == 1) {
+            intent.putExtra("status", "active");
+        } else if(i == 2) {
+            intent.putExtra("status", "stopped");
+        }
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     public void writeCharasLevel(UUID serviceUUID, int level) {
