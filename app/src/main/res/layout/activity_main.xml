@@ -276,7 +276,7 @@
                 android:layout_height="wrap_content"
                 android:visibility="visible"
                 app:indicator="BallClipRotate"
-                app:indicator_color="?attr/colorPrimary"
+                app:indicator_color="@color/colorAccent"
                 />
                 <com.wang.avi.AVLoadingIndicatorView
                     android:id="@+id/avConnectedView"
@@ -284,7 +284,7 @@
                     android:layout_height="wrap_content"
                     android:visibility="gone"
                     app:indicator="BallClipRotatePulse"
-                    app:indicator_color="?attr/colorPrimary"
+                    app:indicator_color="@color/colorAccent"
 
                     />
             </LinearLayout>

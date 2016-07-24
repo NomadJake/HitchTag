@@ -449,6 +449,9 @@ public class MainActivity extends AppCompatActivity {
 
 
             setCurrentTheme((Integer.parseInt(helper.getHitchTagThemeColors().get(selectedTag))));
+
+       if(!tagStatus.getText().equals("Connected"))
+       {
        runOnUiThread(new Runnable() {
            @Override
            public void run() {
@@ -458,7 +461,7 @@ public class MainActivity extends AppCompatActivity {
                tagStatusImage.setVisibility(View.GONE);
            }
        });
-       scanLeDevice(true);
+       scanLeDevice(true);}
         /*switch (tagStatus.getText().toString())
         {
             case "Connected":
@@ -1013,6 +1016,7 @@ public class MainActivity extends AppCompatActivity {
                         hitchLogoTop.setColorFilter(getResources().getColor(R.color.themeColor0), PorterDuff.Mode.SRC_IN);
                         tagImage.setBorderColor(getResources().getColor(R.color.themeColor0));
                         tagRange.setTintColor(getResources().getColor(R.color.themeColor0));
+
                     }
                 });
 
@@ -1030,6 +1034,7 @@ public class MainActivity extends AppCompatActivity {
                         hitchLogoTop.setColorFilter(getResources().getColor(R.color.themeColor1), PorterDuff.Mode.SRC_IN);
                         tagImage.setBorderColor(getResources().getColor(R.color.themeColor1));
                         tagRange.setTintColor(getResources().getColor(R.color.themeColor1));
+
                     }
                 });
 
@@ -1047,6 +1052,7 @@ public class MainActivity extends AppCompatActivity {
                         hitchLogoTop.setColorFilter(getResources().getColor(R.color.themeColor2), PorterDuff.Mode.SRC_IN);
                         tagImage.setBorderColor(getResources().getColor(R.color.themeColor2));
                         tagRange.setTintColor(getResources().getColor(R.color.themeColor2));
+
                     }
                 });
 
