@@ -319,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
         init();
         enableBLE();
 
-        Toast.makeText(this, tabLayout.getFocusedChild() + "", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, tabLayout.getFocusedChild() + "", Toast.LENGTH_SHORT).show();
 
         bleStateReceiver = new BroadcastReceiver() {
             public void onReceive(Context context, Intent intent) {
@@ -432,6 +432,16 @@ public class MainActivity extends AppCompatActivity {
                 tagStatusImage.setImageResource(R.drawable.nearby_statusicon);
             }else if(message.equals("stopped")){
                 tagStatus.setText("stopped");
+                tagStatusImage.setVisibility(View.VISIBLE);
+                tagStatusImage.setImageResource(R.drawable.na_status);
+                findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
+            }else if (message.equals("lost")){
+                tagStatus.setText("lost");
+                tagStatusImage.setVisibility(View.VISIBLE);
+                tagStatusImage.setImageResource(R.drawable.na_status);
+                findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
+            }else if (message.equals("notfound")){
+                tagStatus.setText("not found");
                 tagStatusImage.setVisibility(View.VISIBLE);
                 tagStatusImage.setImageResource(R.drawable.na_status);
                 findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
@@ -839,6 +849,7 @@ public class MainActivity extends AppCompatActivity {
     public void onFindButtonPressed(View v) {
         findButton.setClickable(false);
 
+        tagList.get(pos).writeCharasLevel(Constants.UUIDS.IMMEDIATE_ALERT, Constants.ALERT_HIGH);
         // here for find button onclick to do
 //        HitchTag.trakHitch = true;
 //        tagList.get(pos).findHitchTag();
@@ -962,7 +973,7 @@ public class MainActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             // strings
             if(msg.what == Constants.STRINGMESSAGE.TOAST){
-                Toast.makeText(context, (String) msg.obj, Toast.LENGTH_LONG).show();
+//                Toast.makeText(context, (String) msg.obj, Toast.LENGTH_LONG).show();
             }
             else if(msg.what == Constants.STRINGMESSAGE.ALARM){
                 if((msg.obj).equals("a")){
@@ -977,10 +988,10 @@ public class MainActivity extends AppCompatActivity {
 
             else if(msg.what == Constants.INTMESSAGE.TRACK){
                 // not sure if this one is really needed
-                Toast.makeText(context, "TRACK: rssi = " + msg.obj, Toast.LENGTH_SHORT).show();
+//                Toast.makeText(context, "TRACK: rssi = " + msg.obj, Toast.LENGTH_SHORT).show();
             }
             else if(msg.what == Constants.INTMESSAGE.FIND){
-                Toast.makeText(context, "FIND: bars = " + msg.obj, Toast.LENGTH_SHORT).show();
+//                Toast.makeText(context, "FIND: bars = " + msg.obj, Toast.LENGTH_SHORT).show();
             }else if(msg.what == 69){
                 Toast.makeText(context, "Tag Connected", Toast.LENGTH_SHORT).show();
 

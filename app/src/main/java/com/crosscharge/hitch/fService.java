@@ -49,7 +49,11 @@ public class fService extends Service {
     Boolean trackConnected = true;
     Boolean alarmTriggered = false;
     Boolean restartConnectedFlag = false;
+    int statusForActivity = 1; //1 : tracking ; 2 : stopped tracking; 3 : Lost; 4 : not found
 
+    public PendingIntent pstartTrackingIntent;
+    public PendingIntent pLostIntent;
+    public PendingIntent pMiddleIntent;
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
     private String mBluetoothDeviceAddress;
@@ -73,6 +77,7 @@ public class fService extends Service {
 
     String TAG = "fServiceLOG";
     String mode;
+    private boolean keepTrackerThread = true;
 
     @Nullable
     @Override
@@ -90,6 +95,8 @@ public class fService extends Service {
         bluetoothAdapter = bluetoothManager.getAdapter();
 
         context = getApplicationContext();
+
+        keepTrackerThread = true;
 
     }
 
@@ -111,7 +118,7 @@ public class fService extends Service {
         Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notificationSound);
         r.play();
 
-        if( intent==null){
+        if( intent==null || intent.getAction().equals("lost")){
 
             Intent notificationIntent = new Intent(this, MainActivity.class);
             notificationIntent.setAction("main");
@@ -124,12 +131,23 @@ public class fService extends Service {
             Bitmap icon = BitmapFactory.decodeResource(getResources(),
                     R.drawable.hitchinlogo);
 
+            statusForActivity = 3;
+
+            Intent killService = new Intent(this, fService.class);
+            killService.putExtra("device", device);
+            killService.setAction("kill");
+            PendingIntent pkillService = PendingIntent.getService(this, 0,
+                    killService, PendingIntent.FLAG_UPDATE_CURRENT);
+
             builder = new NotificationCompat.Builder(context);
 
             builder.setContentTitle("Hitch");
             builder.setContentText("Lost Hitch tag !");
             builder.setSmallIcon(R.drawable.hitchinlogo);
             builder.setLargeIcon(Bitmap.createScaledBitmap(icon, 300, 300, false));
+            builder.addAction(android.R.drawable.ic_lock_power_off, "close",
+                    pkillService);
+            builder.setColor(getResources().getColor(R.color.holo_red_dark));
             builder.setContentIntent(pendingIntent);
             builder.setOngoing(true);
 
@@ -182,7 +200,7 @@ public class fService extends Service {
 
             }
             Log.d(TAG, "Received Start Foreground Intent ");
-
+            statusForActivity = 1;
 
             Intent notificationIntent = new Intent(this, MainActivity.class);
             notificationIntent.setAction("main");
@@ -196,8 +214,22 @@ public class fService extends Service {
             startTrackingIntent.putExtra("device", device);
             startTrackingIntent.putExtra("trackingModeLong", trackingModeLong);
             startTrackingIntent.setAction("start");
-            PendingIntent pstartTrackingIntent = PendingIntent.getService(this, 0,
+            pstartTrackingIntent = PendingIntent.getService(this, 0,
                     startTrackingIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            Intent middleIntent = new Intent(this, fService.class);
+            middleIntent.putExtra("device", device);
+            middleIntent.putExtra("trackingModeLong", trackingModeLong);
+            middleIntent.setAction("middle");
+            pMiddleIntent = PendingIntent.getService(this, 0,
+                    middleIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            Intent lostIntent = new Intent(this, fService.class);
+            lostIntent.putExtra("device", device);
+            lostIntent.putExtra("trackingModeLong", trackingModeLong);
+            lostIntent.setAction("lost");
+            pLostIntent = PendingIntent.getService(this, 0,
+                    lostIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
             Intent stopTrackingIntent = new Intent(this, fService.class);
             stopTrackingIntent.putExtra("device", device);
@@ -225,7 +257,7 @@ public class fService extends Service {
             builder.setLargeIcon(Bitmap.createScaledBitmap(icon, 200, 200, false));
             builder.setContentIntent(pendingIntent);
             builder.setOngoing(true);
-            builder.addAction(android.R.drawable.ic_media_play, "start", pstartTrackingIntent);
+            builder.addAction(android.R.drawable.ic_media_play, "start", pMiddleIntent);
             builder.addAction(android.R.drawable.ic_media_pause, "stop",
                     pstopTrackingIntent);
             builder.addAction(android.R.drawable.ic_lock_power_off, "close",
@@ -237,12 +269,26 @@ public class fService extends Service {
 
             startForeground(101,
                     stateHolderNotification);
-        } else if (intent.getAction().equals("start")) {
+        }else if(intent.getAction().equals("middle")){
+
+            builder.setContentText("Restarting Tracking ... ");
+            notificationManager.notify(101, builder.build());
+            Intent intentJ = new Intent();
+            try {
+                pstartTrackingIntent.send(context, 0, intentJ);
+
+            } catch (PendingIntent.CanceledException e) {
+                // the stack trace isn't very helpful here
+                Log.d(TAG, "restart tracking failed");
+            }
+
+        }else if (intent.getAction().equals("start")) {
             Log.d(TAG, "restart service clicked");
             try {
                 Boolean restartConnectedFlag2 = connect(mBluetoothDeviceAddress);
             } catch (Exception e) {
                 mode = "device not found !";
+                statusForActivity = 4;
                 e.printStackTrace();
             }
 
@@ -253,6 +299,7 @@ public class fService extends Service {
                     if (deviceGatt == null) {
                         mode = "device not found !";
                         restartConnectedFlag = false;
+                        statusForActivity = 4;
                     } else {
                         writeCharasLevel(Constants.UUIDS.LINK_LOSS, Constants.ALERT_HIGH);
                         restartConnectedFlag = true;
@@ -266,6 +313,7 @@ public class fService extends Service {
                     if (trackConnected == false) {
                         mode = "device not found !";
                         restartConnectedFlag = false;
+                        statusForActivity = 4;
                     }
 
 
@@ -299,7 +347,7 @@ public class fService extends Service {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
+            statusForActivity = 2;
             sendMessage(2);
             keepTracking = false;
             String pausedText = "Tracking Paused";
@@ -317,6 +365,18 @@ public class fService extends Service {
 
         } else if (intent.getAction().equals("kill")) {
             Log.d(TAG, " kill service intent by user");
+            if (persistentThread != null) {
+                persistentThread.interrupt();
+            }
+
+            stopAlarm();
+
+            keepTrackerThread = false;
+            Intent mIntent = new Intent("service-active");
+            mIntent.putExtra("status", "stopped");
+            LocalBroadcastManager.getInstance(this).sendBroadcast(mIntent);
+            statusForActivity = 2;
+            keepTracking = false;
             disconnect();
             stopForeground(true);
             stopSelf();
@@ -355,6 +415,15 @@ public class fService extends Service {
                     Log.d(TAG, "ACTION_ACL_DISCONNECTED");
                     if (keepTracking) {
                         playAlarm();
+                        statusForActivity = 3;
+                        Intent intentJ = new Intent();
+                        try {
+                            pLostIntent.send(context, 0, intentJ);
+
+                        } catch (PendingIntent.CanceledException e) {
+                            // the stack trace isn't very helpful here
+                            Log.d(TAG, "restart tracking failed");
+                        }
                     }
                 }
 
@@ -383,6 +452,15 @@ public class fService extends Service {
                     if (!trackingModeLong) {
                         if (restartConnectedFlag) {
                             playAlarm();
+                            statusForActivity = 3;
+                            Intent intent = new Intent();
+                            try {
+                                pLostIntent.send(context, 0, intent);
+
+                            } catch (PendingIntent.CanceledException e) {
+                                // the stack trace isn't very helpful here
+                                Log.d(TAG, "restart tracking failed");
+                            }
                         }
                     }
                 }
@@ -392,6 +470,14 @@ public class fService extends Service {
                 playAlarm();
                 trackConnected = false;
                 disconnect();
+                Intent intent = new Intent();
+                try {
+                    pLostIntent.send(context, 0, intent);
+
+                } catch (PendingIntent.CanceledException e) {
+                    // the stack trace isn't very helpful here
+                    Log.d(TAG, "restart tracking failed");
+                }
             }
         }
 
@@ -423,8 +509,9 @@ public class fService extends Service {
                 if (rssi < -90 || rssi == 0) {
                     trackCnt--;
                     if (trackCnt == 0) {
-                        Log.d(TAG, "nipple");
+                        Log.d(TAG, "rssi check");
                         playAlarm();
+                        statusForActivity = 3;
                         alarmTriggered = true;
                         try {
                             Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
@@ -433,19 +520,36 @@ public class fService extends Service {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
+                        Intent intent = new Intent();
+                        try {
+                            pLostIntent.send(context, 0, intent);
+
+                        } catch (PendingIntent.CanceledException e) {
+                            // the stack trace isn't very helpful here
+                            Log.d(TAG, "restart tracking failed");
+                        }
                     } else if (trackCnt < -8) {
                         stopAlarm();
                         disconnect();
                     }
                 } else {
                     trackCnt = 3;
-                    if (alarmTriggered) {
-                        trackStopAlarmCount--;
-                        if (trackStopAlarmCount == 0) {
-                            stopAlarm();
-                            trackStopAlarmCount = 3;
-                        }
-                    }
+//                    if (alarmTriggered) {
+//                        trackStopAlarmCount--;
+//                        if (trackStopAlarmCount == 0) {
+//                            stopAlarm();
+//                            trackStopAlarmCount = 3;
+//                            Intent intent = new Intent();
+//                            try {
+//                                pstartTrackingIntent.send(context, 0, intent);
+//
+//                            } catch (PendingIntent.CanceledException e) {
+//                                // the stack trace isn't very helpful here
+//                                Log.d(TAG, "restart tracking failed");
+//                            }
+//
+//                        }
+//                    }
                 }
                 Log.d(TAG, "trackCnt = " + trackCnt);
             }
@@ -487,12 +591,26 @@ public class fService extends Service {
         public void run() {
             super.run();
 
-            while (true) {
-                if(keepTracking){
-                    sendMessage(1);
-                }else {
-                    sendMessage(2);
+            while (keepTrackerThread) {
+
+                switch (statusForActivity){
+                    case 1: sendMessage(1);
+                        break;
+                    case 2: sendMessage(2);
+                        break;
+                    case 3: sendMessage(3);
+                        break;
+                    case 4: sendMessage(4);
+                        break;
+                    default:sendMessage(2);
                 }
+//                if(statusForActivity == 3){
+//                    sendMessage(3);
+//                }else if(keepTracking){
+//                    sendMessage(1);
+//                }else {
+//                    sendMessage(2);
+//                }
                 try {
                     Thread.currentThread().sleep(1000);
                 } catch (InterruptedException e) {
@@ -561,9 +679,13 @@ public class fService extends Service {
     private void sendMessage(int i) {
         Log.d("sender", "Broadcasting service started");
         Intent intent = new Intent("service-active");
-        if (i == 1) {
+        if (i == 3){
+            intent.putExtra("status", "lost");
+        }else if (i == 4){
+            intent.putExtra("status", "notfound");
+        }else if (i == 1 || keepTracking) {
             intent.putExtra("status", "active");
-        } else if(i == 2) {
+        } else if(i == 2 || !keepTracking) {
             intent.putExtra("status", "stopped");
         }
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
