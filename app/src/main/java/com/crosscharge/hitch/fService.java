@@ -52,6 +52,8 @@ public class fService extends Service {
     int statusForActivity = 1; //1 : tracking ; 2 : stopped tracking; 3 : Lost; 4 : not found
 
     public PendingIntent pstartTrackingIntent;
+    public PendingIntent pstopTrackingIntent;
+    public PendingIntent pkillService;
     public PendingIntent pLostIntent;
     public PendingIntent pMiddleIntent;
     private BluetoothManager mBluetoothManager;
@@ -235,13 +237,13 @@ public class fService extends Service {
             stopTrackingIntent.putExtra("device", device);
             stopTrackingIntent.putExtra("trackingModeLong", trackingModeLong);
             stopTrackingIntent.setAction("stop");
-            PendingIntent pstopTrackingIntent = PendingIntent.getService(this, 0,
+            pstopTrackingIntent = PendingIntent.getService(this, 0,
                     stopTrackingIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             Intent killService = new Intent(this, fService.class);
             killService.putExtra("device", device);
             killService.setAction("kill");
-            PendingIntent pkillService = PendingIntent.getService(this, 0,
+            pkillService = PendingIntent.getService(this, 0,
                     killService, PendingIntent.FLAG_UPDATE_CURRENT);
 
 
@@ -257,10 +259,10 @@ public class fService extends Service {
             builder.setLargeIcon(Bitmap.createScaledBitmap(icon, 200, 200, false));
             builder.setContentIntent(pendingIntent);
             builder.setOngoing(true);
-            builder.addAction(android.R.drawable.ic_media_play, "start", pMiddleIntent);
-            builder.addAction(android.R.drawable.ic_media_pause, "stop",
+//            builder.addAction(android.R.drawable.ic_media_play, "start", pMiddleIntent);
+            builder.addAction(android.R.drawable.ic_media_pause, "Pause",
                     pstopTrackingIntent);
-            builder.addAction(android.R.drawable.ic_lock_power_off, "close",
+            builder.addAction(android.R.drawable.ic_lock_power_off, "Close",
                     pkillService);
 
             builder.setPriority(Notification.PRIORITY_HIGH);
@@ -318,6 +320,11 @@ public class fService extends Service {
 
 
                     keepTracking = true;
+                    builder.mActions.clear();
+                    builder.addAction(android.R.drawable.ic_media_pause, "Pause",
+                            pstopTrackingIntent);
+                    builder.addAction(android.R.drawable.ic_lock_power_off, "Close",
+                            pkillService);
                     builder.setContentText("Tracking Mode : " + mode);
 
 
@@ -359,7 +366,10 @@ public class fService extends Service {
                 e.printStackTrace();
             }
 
-
+            builder.mActions.clear();
+            builder.addAction(android.R.drawable.ic_media_play, "start", pMiddleIntent);
+            builder.addAction(android.R.drawable.ic_lock_power_off, "Close",
+                    pkillService);
             builder.setContentText(pausedText);
             notificationManager.notify(101, builder.build());
 

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Hitch</string>
+    <string name="app_name">Hitch Pet</string>
     <string name="title_activity_main2">HitchMain</string>
     <string name="title_activity_settings">Settings</string>
     <string name="brandText">Hitch tag is an anti-theft proximity tag. Never Lose anything again.</string>

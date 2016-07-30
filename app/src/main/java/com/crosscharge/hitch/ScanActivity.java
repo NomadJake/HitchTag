@@ -90,6 +90,22 @@ public class ScanActivity extends AppCompatActivity {
         });
 
         init();
+        enableBLE();
+    }
+
+    private boolean enableBLE(){
+        boolean ret = true;
+        // Ensures Bluetooth is available on the device and it is enabled. If not,
+        // displays a dialog requesting user permission to enable Bluetooth.
+        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+
+            Log.d(TAG, "BLE disabled.");
+
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, Constants.BLE.REQUEST_ENABLE_BT);
+            ret = false;
+        }
+        return ret;
     }
 
     private void scanClicked(){
