@@ -12,7 +12,7 @@ public class Constants {
     // BLE Constants
     public interface BLE {
         //vaze scan period changed to 5 sec
-        int SCAN_PERIOD = 5000;
+        int SCAN_PERIOD = 6000;
         int REQUEST_ENABLE_BT = 64;
 
         int COUNT_RANGE = 3;

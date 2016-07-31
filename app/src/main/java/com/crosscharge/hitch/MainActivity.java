@@ -280,10 +280,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-
-
-
-
         tagImage=(CircleImageView)findViewById(R.id.tag_image);
         SharedPreferences sharedPreferences =  PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext());
         String imageResource = sharedPreferences.getString("pet_image_name",null);
@@ -626,6 +622,7 @@ public class MainActivity extends AppCompatActivity {
 
                                         tagStatusImage.setVisibility(View.VISIBLE);
                                         tagStatus.setText("Nearby");
+                                        bluetoothAdapter.stopLeScan(scanCallback);
                                         tagStatusImage.setImageResource(R.drawable.nearby_statusicon);
 
                                         findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
@@ -895,9 +892,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         // here for refresh button onclick to do
-
-
-
 
 
         if(tagStatus.getText().equals("Connected")||tagStatus.getText().equals("Searching"))

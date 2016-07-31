@@ -12,6 +12,7 @@ import android.graphics.Color;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,33 +21,29 @@ import android.widget.ProgressBar;
 
 import com.akexorcist.roundcornerprogressbar.IconRoundCornerProgressBar;
 import com.akexorcist.roundcornerprogressbar.RoundCornerProgressBar;
+import com.daasuu.ahp.AnimateHorizontalProgressBar;
 
 public class StrengthBars extends AppCompatActivity {
 
-    IconRoundCornerProgressBar progress1;
-    ProgressBar progressBarSimple;
+    public ProgressBar progressBar;
     BluetoothGatt deviceGatt;
     BluetoothDevice device;
     public String TAG = "findTag";
     int bars;
+    private double total;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_strength_bars);
         device =(BluetoothDevice) getIntent().getExtras().get("device");
-        progress1 = (IconRoundCornerProgressBar) findViewById(R.id.progress_2);
-        progress1.setProgressColor(Color.parseColor("#56d2c2"));
-        progress1.setProgressBackgroundColor(Color.parseColor("#757575"));
-        progress1.setIconBackgroundColor(Color.parseColor("#38c0ae"));
-        progressBarSimple = (ProgressBar)findViewById(R.id.progressBar2);
-        progressBarSimple.setProgress(3);
+        progressBar = (ProgressBar)findViewById(R.id.progressBar);
         if(deviceGatt == null){
             connect();
         }
-        progress1.setMax(4);
-        progress1.setProgress(3);
-        progress1.setIconImageResource(R.drawable.hitchlogo);
+
+        progressBar.setMax(6);
+        progressBar.setProgress(3);
         new TrackThread().start();
 
     }
@@ -96,31 +93,50 @@ public class StrengthBars extends AppCompatActivity {
             if(true){
                 Log.d(TAG, "rssi = " + rssi);
                 bars = 0;
-                if(rssi < -80 || rssi == 0){
-                    bars = 0;
-                }
-                else if(rssi < -65){
+                if(rssi < -100|| rssi == 0){
                     bars = 1;
-                }
-                else if(rssi < -50){
+                } else if(rssi < -95 && rssi >= -100 ){
                     bars = 2;
-                }
-                else if(rssi < -35){
+                }else if(rssi < -80 && rssi >= -95 ){
                     bars = 3;
                 }
-                else{
+                else if(rssi < -65 && rssi >= -80){
                     bars = 4;
                 }
-                progress1.setMax(4);
-                progress1.setProgress(bars);
-                progressBarSimple.setProgress(bars);
+                else if(rssi < -50 && rssi >= -65 ){
+                    bars = 5;
+                }
+                else if( rssi < -35 && rssi >= -50){
+                    bars = 6;
+                }else {
+                    bars = 5;
+                }
+
+                Log.d(TAG, "bars = " + bars);
+
+                progressBar.setProgress(bars);
 
             }
 
         }
     };
 
-
+//    public static int movingMode(int a[]) {
+//        int maxValue, maxCount;
+//
+//        for (int i = 0; i < a.length; ++i) {
+//            int count = 0;
+//            for (int j = 0; j < a.length; ++j) {
+//                if (a[j] == a[i]) ++count;
+//            }
+//            if (count > maxCount) {
+//                maxCount = count;
+//                maxValue = a[i];
+//            }
+//        }
+//
+//        return maxValue;
+//    }
 
 
     public class TrackThread extends Thread{
@@ -136,8 +152,6 @@ public class StrengthBars extends AppCompatActivity {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
-
             }
         }
     }
@@ -146,7 +160,5 @@ public class StrengthBars extends AppCompatActivity {
     {
         onBackPressed();
     }
-
-
 
 }
