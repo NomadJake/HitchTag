@@ -20,6 +20,7 @@ public class AlarmService extends Service {
 
     MediaPlayer p;
     Vibrator v;
+    public Boolean noPlayFlag = false;
 
     public AlarmService() {
     }
@@ -35,10 +36,14 @@ public class AlarmService extends Service {
                     Log.d("Alarm!!!", cnt + "");
                     // play alarm here
                     v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                    v.vibrate(200);
+                    if (!noPlayFlag) {
+                        v.vibrate(200);
+                    }
 
                     p = MediaPlayer.create(getApplicationContext(), R.raw.beep1);
-                    p.start();
+                    if (!noPlayFlag) {
+                        p.start();
+                    }
 
                     try {
                         Thread.currentThread().sleep(2000);
@@ -111,7 +116,7 @@ public class AlarmService extends Service {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return START_NOT_STICKY;
+        return 1;
     }
 
     private void stopAlarmService(){
@@ -121,6 +126,7 @@ public class AlarmService extends Service {
 
     @Override
     public void onDestroy() {
+        noPlayFlag = true;
         super.onDestroy();
         Log.i(TAG, "In onDestroy");
     }

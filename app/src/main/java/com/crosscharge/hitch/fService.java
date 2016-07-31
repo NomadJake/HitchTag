@@ -345,7 +345,7 @@ public class fService extends Service {
 
             writeCharasLevel(Constants.UUIDS.LINK_LOSS, Constants.ALERT_LOW);
 
-            stopAlarm();
+//            stopAlarm();
             if (persistentThread != null) {
                 persistentThread.interrupt();
             }
@@ -387,6 +387,7 @@ public class fService extends Service {
             LocalBroadcastManager.getInstance(this).sendBroadcast(mIntent);
             statusForActivity = 2;
             keepTracking = false;
+            close();
             disconnect();
             stopForeground(true);
             stopSelf();

@@ -898,6 +898,9 @@ public class MainActivity extends AppCompatActivity {
         {
             
         }
+        if(tagList.get(pos).connected()){
+            tagStatus.setText("Connected");
+        }
         else{
             scanLeDevice(true);
             runOnUiThread(new Runnable() {
