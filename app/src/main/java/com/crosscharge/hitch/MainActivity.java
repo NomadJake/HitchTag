@@ -49,7 +49,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-
 import de.hdodenhof.circleimageview.CircleImageView;
 import tourguide.tourguide.Overlay;
 import tourguide.tourguide.Pointer;
@@ -140,10 +139,15 @@ public class MainActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+
+                                //remove shubrat
+
+
                                 animateFabs();
                                 tagStatus.setText("Connected");
                                 tagStatusImage.setVisibility(View.GONE);
-                                findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
+                                findViewById(R.id.avSearchingView).setVisibility(View.GONE);
+                                findViewById(R.id.avTrackingView).setVisibility(View.GONE);
                                 findViewById(R.id.avConnectedView).setVisibility(View.VISIBLE);
 
                             }
@@ -165,15 +169,14 @@ public class MainActivity extends AppCompatActivity {
                     {
                     mTourGuideHandler.cleanUp();
                     ToolTip toolTip = new ToolTip()
-                            .setTitle("Track your pet.")
-                            .setDescription("Tap on the Track button to start tracking")
-                            .setTextColor(Color.parseColor("#bdc3c7"))
-                            .setBackgroundColor(Color.parseColor("#e74c3c"))
+                            .setTitle("Train your pet.")
+                            .setDescription("Tap on the Train Button to Ring the Tag/Tain your pet")
+                            .setBackgroundColor(Color.parseColor("#117de2"))
                             .setShadow(true)
                             .setGravity(Gravity.TOP);
                     mTourGuideHandler.setToolTip(toolTip)
                             .setOverlay(new Overlay())
-                            .playOn(trackButton);}
+                            .playOn(trainButton);}
 
                 }
 
@@ -202,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
         fab_open = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_open);
         fab_close = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.fab_closed);
 
-        animateFabs();
+
 
         refreshButton=(FloatingActionButton)findViewById(R.id.refresh);
         tagSettingsButton=(FloatingActionButton)findViewById(R.id.tagSettings);
@@ -335,8 +338,7 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public void run() {
                                     tagStatus.setText("Searching");
-                                    findViewById(R.id.avloadingIndicatorView).setVisibility(View.VISIBLE);
-                                    tagStatusImage.setVisibility(View.GONE);
+                                    setIcon("Searching");
                                 }
                             });
                             break;
@@ -370,8 +372,8 @@ public class MainActivity extends AppCompatActivity {
             ToolTip toolTip = new ToolTip()
                     .setTitle("Welcome!")
                     .setDescription("Refresh the tag status, keep your Hitch nearby")
-                    .setTextColor(Color.parseColor("#bdc3c7"))
-                    .setBackgroundColor(Color.parseColor("#e74c3c"))
+                    .setBackgroundColor(Color.parseColor("#117de2"))
+
                     .setShadow(true)
                     .setGravity(Gravity.RIGHT);
              mTourGuideHandler = TourGuide.init(this).with(TourGuide.Technique.Click)
@@ -384,7 +386,7 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
                 new IntentFilter("service-active"));
 
-
+        setIcon("N.A.");
 //        mHandler = new Handler();
 //        startRepeatingTask();
 
@@ -423,24 +425,17 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra("status");
             if(message.equals("active")){
-                tagStatus.setText("tracking");
-                tagStatusImage.setVisibility(View.VISIBLE);
-                tagStatusImage.setImageResource(R.drawable.nearby_statusicon);
+                tagStatus.setText("Tracking");
+               setIcon("Tracking");
             }else if(message.equals("stopped")){
-                tagStatus.setText("stopped");
-                tagStatusImage.setVisibility(View.VISIBLE);
-                tagStatusImage.setImageResource(R.drawable.na_status);
-                findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
+                tagStatus.setText("Stopped");
+                setIcon("Stopped");
             }else if (message.equals("lost")){
-                tagStatus.setText("lost");
-                tagStatusImage.setVisibility(View.VISIBLE);
-                tagStatusImage.setImageResource(R.drawable.na_status);
-                findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
+                tagStatus.setText("Lost");
+                setIcon("N.A.");
             }else if (message.equals("notfound")){
-                tagStatus.setText("not found");
-                tagStatusImage.setVisibility(View.VISIBLE);
-                tagStatusImage.setImageResource(R.drawable.na_status);
-                findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
+                tagStatus.setText("Not Found");
+                setIcon("N.A.");
             }
             Log.d("receiver", "Got message: " + message);
         }
@@ -455,27 +450,74 @@ public class MainActivity extends AppCompatActivity {
 
 
             setCurrentTheme((Integer.parseInt(helper.getHitchTagThemeColors().get(selectedTag))));
-
-       if(!tagStatus.getText().equals("Connected"))
+       if(settings.getInt("user_first_time",2)==2)
        {
-       runOnUiThread(new Runnable() {
-           @Override
-           public void run() {
-               tagStatus.setText("Searching");
-               findViewById(R.id.avConnectedView).setVisibility(View.GONE);
-               findViewById(R.id.avloadingIndicatorView).setVisibility(View.VISIBLE);
-               tagStatusImage.setVisibility(View.GONE);
+
+       }
+       else
+       {
+
+           if(tagStatus.getText().equals("Connected")||tagStatus.getText().equals("Tracking")||tagStatus.getText().equals("Stopped"))
+           {
+
+               trackButton.startAnimation(fab_open);
+               trackButton.setClickable(true);
+               trainButton.startAnimation(fab_open);
+               trainButton.setClickable(true);
+               findButton.startAnimation(fab_open);
+               findButton.setClickable(true);
            }
-       });
-       scanLeDevice(true);}
-        /*switch (tagStatus.getText().toString())
+           else
+           {
+               trackButton.startAnimation(fab_close);
+               trackButton.setClickable(true);
+               trainButton.startAnimation(fab_close);
+               trainButton.setClickable(true);
+               findButton.startAnimation(fab_close);
+               findButton.setClickable(true);
+               runOnUiThread(new Runnable() {
+                   @Override
+                   public void run() {
+                       tagStatus.setText("Searching");
+                       setIcon("Searching");
+                   }
+               });
+               scanLeDevice(true);
+           }
+
+
+
+         /*  if(!tagList.get(0).connected() )
+           {
+               }
+
+           if(tagList.get(0).connected())
+
+           {animateFabs();}*/
+       }
+
+
+
+
+
+
+        switch (tagStatus.getText().toString())
         {
             case "Connected":
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        animateFabs();
-                        tagStatusImage.setImageResource(R.drawable.connected_statusicon);
+
+                        setIcon("Connected");
+                    }
+                });
+
+                break;
+            case "Tracking":
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setIcon("Tracking");
                     }
                 });
 
@@ -484,8 +526,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                       animateFabs();
-                        tagStatusImage.setImageResource(R.drawable.nearby_statusicon);
+                        setIcon("Nearby");
                     }
                 });
 
@@ -494,15 +535,28 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        animateFabs();
-                        tagStatusImage.setImageResource(R.drawable.na_status);
+                        setIcon("N.A.");
+                    }
+                });
+            case "Stopped":
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setIcon("Stopped");
+                    }
+                });
+            case "Searching":
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setIcon("Searching");
                     }
                 });
 
                 break;
 
 
-        }*/
+        }
             //BitmapFactory.Options options = new BitmapFactory.Options();
             //options.inPreferredConfig = Bitmap.Config.ARGB_8888;
 //            Bitmap bitmap = BitmapFactory.decodeFile(path, options);
@@ -584,9 +638,7 @@ public class MainActivity extends AppCompatActivity {
 
                         // if no tag found within specified time then set Status to N.A.
                         tagStatus.setText("N.A.");
-                        tagStatusImage.setVisibility(View.VISIBLE);
-                        tagStatusImage.setImageResource(R.drawable.na_status);
-                        findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
+                        setIcon("N.A.");
 
                     }
                 }
@@ -620,13 +672,19 @@ public class MainActivity extends AppCompatActivity {
                                     @Override
                                     public void run() {
 
-                                        tagStatusImage.setVisibility(View.VISIBLE);
+                                        setIcon("Nearby");
                                         tagStatus.setText("Nearby");
                                         bluetoothAdapter.stopLeScan(scanCallback);
                                         tagStatusImage.setImageResource(R.drawable.nearby_statusicon);
+                                        if(settings.getInt("user_first_time",2)==2)
 
-                                        findViewById(R.id.avloadingIndicatorView).setVisibility(View.GONE);
-                                        tagStatusImage.setVisibility(View.VISIBLE);}
+                                        {
+                                            mTourGuideHandler.cleanUp();
+                                            mTourGuideHandler.setToolTip(new ToolTip().setTitle("Connect to Tag").setDescription("Tap on the paw to connect to Hitch").setBackgroundColor(Color.parseColor("#117de2")))
+                                                    .setOverlay(new Overlay())
+                                                    .playOn(pawImage);
+                                        }
+                                     }
                                     //animateFabs();
 
 
@@ -837,9 +895,9 @@ public class MainActivity extends AppCompatActivity {
 
         {
         mTourGuideHandler.cleanUp();
-        mTourGuideHandler.setToolTip(new ToolTip().setTitle("Ring tag").setDescription("Tap on the Ring Button to ring the tag/ train your pet."))
+        mTourGuideHandler.setToolTip(new ToolTip().setTitle("Find tag").setDescription("Tap on the Find Button to find the tag.").setBackgroundColor(Color.parseColor("#117de2")))
                 .setOverlay(new Overlay())
-                .playOn(trainButton);}
+                .playOn(findButton);}
         trackButton.setClickable(true);
     }
 
@@ -872,48 +930,37 @@ public class MainActivity extends AppCompatActivity {
 
         {
             mTourGuideHandler.cleanUp();
-            mTourGuideHandler.setToolTip(new ToolTip().setTitle("Find tag").setDescription("Find your tag"))
+            mTourGuideHandler.setToolTip(new ToolTip().setTitle("Track your pet").setDescription("Tap on the track button to track your pet.") .setGravity(Gravity.TOP).setBackgroundColor(Color.parseColor("#117de2")))
+
                     .setOverlay(new Overlay())
-                    .playOn(findButton);
+                    .playOn(trackButton);
         }
         trainButton.setClickable(true);
     }
 
     public void onRefreshPressed(View v) {
-        if(tagStatus.getText().equals("Nearby"))
-        {
-            if(settings.getInt("user_first_time",2)==2)
-
-            {
-                mTourGuideHandler.cleanUp();
-                mTourGuideHandler.setToolTip(new ToolTip().setTitle("Connect to Tag").setDescription("Tap on the paw to connect to Hitch"))
-                        .setOverlay(new Overlay())
-                        .playOn(pawImage);
-            }
-        }
         // here for refresh button onclick to do
-
-
-        if(tagStatus.getText().equals("Connected")||tagStatus.getText().equals("Searching"))
+        if(tagList.get(0).connected())
+        {setIcon("Connected");
+        tagStatus.setText("Connected");}
+        else
         {
-            
-        }
-        if(tagList.get(pos).connected()){
-            tagStatus.setText("Connected");
-        }
-        else{
+
+
+
+        if(tagStatus.getText().equals("Nearby")||tagStatus.getText().equals("Stopped")||tagStatus.getText().equals("N.A."))
+        {
             scanLeDevice(true);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     tagStatus.setText("Searching");
-                    findViewById(R.id.avConnectedView).setVisibility(View.GONE);
-                    findViewById(R.id.avloadingIndicatorView).setVisibility(View.VISIBLE);
-                    tagStatusImage.setVisibility(View.GONE);
+                    setIcon("Searching");
                 }
             });
         }
 
+    }
     }
 
     public void onConnectPressed(View v) {
@@ -974,6 +1021,7 @@ public class MainActivity extends AppCompatActivity {
             }
             else if(msg.what == Constants.STRINGMESSAGE.ALARM){
                 if((msg.obj).equals("a")){
+
 //                    playAlarm();
                 }
                 else{
@@ -991,6 +1039,14 @@ public class MainActivity extends AppCompatActivity {
 //                Toast.makeText(context, "FIND: bars = " + msg.obj, Toast.LENGTH_SHORT).show();
             }else if(msg.what == 69){
                 Toast.makeText(context, "Tag Connected", Toast.LENGTH_SHORT).show();
+
+
+                //Change subrat
+
+                //tagStatus.setText("Connected");
+                //setIcon("Connected");
+                //animateFabs();
+
 
 
 
@@ -1166,8 +1222,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 tagStatus.setText("Searching");
-                findViewById(R.id.avloadingIndicatorView).setVisibility(View.VISIBLE);
-                tagStatusImage.setVisibility(View.GONE);
+                setIcon("Searching");
             }
         });
     }
@@ -1197,4 +1252,71 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
+    public void setIcon(String status)
+    {
+        switch (status)
+        {
+            case "Tracking":
+                //clear icons
+                tagStatusImage.setVisibility(View.GONE);
+                findViewById(R.id.avConnectedView).setVisibility(View.GONE);
+                findViewById(R.id.avSearchingView).setVisibility(View.GONE);
+
+                //set icon
+                findViewById(R.id.avTrackingView).setVisibility(View.VISIBLE);
+
+                break;
+            case "Connected":
+                //clear icons
+                tagStatusImage.setVisibility(View.GONE);
+                findViewById(R.id.avTrackingView).setVisibility(View.GONE);
+                findViewById(R.id.avSearchingView).setVisibility(View.GONE);
+
+                //set icon
+                findViewById(R.id.avConnectedView).setVisibility(View.VISIBLE);
+                break;
+            case "Searching":
+                //clear icons
+                tagStatusImage.setVisibility(View.GONE);
+                findViewById(R.id.avTrackingView).setVisibility(View.GONE);
+                findViewById(R.id.avConnectedView).setVisibility(View.GONE);
+
+                //set icon
+                findViewById(R.id.avSearchingView).setVisibility(View.VISIBLE);
+                break;
+            case "Stopped":
+                //clear icons
+                findViewById(R.id.avSearchingView).setVisibility(View.GONE);
+                findViewById(R.id.avTrackingView).setVisibility(View.GONE);
+                findViewById(R.id.avConnectedView).setVisibility(View.GONE);
+
+                //set icon
+                tagStatusImage.setVisibility(View.VISIBLE);
+                tagStatusImage.setImageResource(R.drawable.na_status);
+                break;
+            case "N.A.":
+                //clear icons
+                findViewById(R.id.avSearchingView).setVisibility(View.GONE);
+                findViewById(R.id.avTrackingView).setVisibility(View.GONE);
+                findViewById(R.id.avConnectedView).setVisibility(View.GONE);
+
+                //set icon
+                tagStatusImage.setVisibility(View.VISIBLE);
+                tagStatusImage.setImageResource(R.drawable.na_status);
+                break;
+            case "Nearby":
+                //clear icons
+                findViewById(R.id.avSearchingView).setVisibility(View.GONE);
+                findViewById(R.id.avTrackingView).setVisibility(View.GONE);
+                findViewById(R.id.avConnectedView).setVisibility(View.GONE);
+
+                //set icon
+                tagStatusImage.setVisibility(View.VISIBLE);
+                tagStatusImage.setImageResource(R.drawable.nearby_statusicon);
+                break;
+
+        }
+    }
+
 }

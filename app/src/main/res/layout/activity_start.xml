@@ -49,8 +49,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:layout_marginTop="10dp"
-                        android:layout_marginBottom="40dp"
+                        android:layout_marginBottom="20dp"
                         android:layout_below="@+id/indicator"
+                        android:id="@+id/uiShocaseFrameLayout"
                       >
 
                         <android.support.v4.view.ViewPager
@@ -90,6 +91,7 @@
 
 
 
+
                 </RelativeLayout>
 
             </LinearLayout>
@@ -118,7 +120,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:textSize="18dp"
-                        android:text="Add a Hitch"
+                        android:text="Swipe Left"
                         android:textColor="@color/colorAccent"
                         android:layout_centerHorizontal="true"
                         android:layout_below="@+id/addAHitch"

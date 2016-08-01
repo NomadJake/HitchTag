@@ -14,20 +14,76 @@
         android:layout_width="65dp"
         android:layout_height="65dp"
         android:src="@drawable/backicon"
-        android:layout_margin="20dp"
+        android:layout_margin="10dp"
         android:layout_alignParentTop="true"
         app:elevation="4dp"
         app:backgroundTint="@color/colorPrimaryDark"
 
         android:onClick="backPressed"/>
 
+
+
+
+
     <ProgressBar
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="400dp"
-        android:layout_height="10dp"
         android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="110dp"
+        android:layout_height="match_parent"
+        android:layout_margin="20dp"
         android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:progressDrawable="@drawable/verticalprogressbar"
+        android:layout_below="@+id/backButton"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_toEndOf="@+id/progressBar"
+        android:layout_below="@+id/backButton"
+        android:layout_margin="20dp"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Near"
+                android:textColor="@color/colorAccent"
+                android:layout_marginTop="10dp"/>
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mid"
+                android:textColor="@color/colorAccent"/>
+
+        </LinearLayout>
+        <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="bottom">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Far"
+                android:layout_marginBottom="10dp"
+                android:textColor="@color/colorAccent"/>
+
+    </LinearLayout>
+
+
+
+    </LinearLayout>
 
 
 </RelativeLayout>

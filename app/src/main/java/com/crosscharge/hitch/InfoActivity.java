@@ -52,12 +52,9 @@ public class InfoActivity extends AppCompatActivity {
     public void  fbClicked(View v)
     {
 
-        try {
-            this.getPackageManager().getPackageInfo("com.facebook.katana", 0);
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("fb://page/<id_here>")));
-        } catch (Exception e) {
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/<id_here>")));
-        }
+
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/hitchtag")));
+
 
     }
     @Override

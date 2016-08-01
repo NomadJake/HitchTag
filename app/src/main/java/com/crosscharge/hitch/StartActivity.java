@@ -39,7 +39,6 @@ public class StartActivity extends AppCompatActivity {
             addAHitchFab=(FloatingActionButton)findViewById(R.id.addAHitch);
             text=(TextView)findViewById(R.id.addText);
             lArrowIcon.startAnimation(hide);
-            text.startAnimation(hide);
             addAHitchFab.startAnimation(hide);
             addAHitchFab.setTag("hidden");
        // addAHitchFab=(FloatingActionButton)findViewById(R.id.addButton);
@@ -69,6 +68,7 @@ public class StartActivity extends AppCompatActivity {
                     {
                         addAHitchFab.setTag("shown");
                         addAHitchFab.startAnimation(show);
+                        text.setText("Add a Hitch");
                         text.startAnimation(show);
                     }
                    // text.setVisibility(View.VISIBLE);

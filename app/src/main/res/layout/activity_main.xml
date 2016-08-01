@@ -271,15 +271,24 @@
                     android:textSize="16sp"
                     />
                 <com.wang.avi.AVLoadingIndicatorView
-                    android:id="@+id/avloadingIndicatorView"
+                    android:id="@+id/avSearchingView"
                     android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:visibility="visible"
-                app:indicator="BallClipRotate"
+                    android:visibility="gone"
+                app:indicator="BallScaleMultiple"
                 app:indicator_color="@color/colorAccent"
                 />
                 <com.wang.avi.AVLoadingIndicatorView
                     android:id="@+id/avConnectedView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    app:indicator="BallClipRotateMultiple"
+                    app:indicator_color="@color/colorAccent"
+
+                    />
+                <com.wang.avi.AVLoadingIndicatorView
+                    android:id="@+id/avTrackingView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:visibility="gone"
