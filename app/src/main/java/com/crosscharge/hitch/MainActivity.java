@@ -143,12 +143,12 @@ public class MainActivity extends AppCompatActivity {
                                 //remove shubrat
 
 
-                                animateFabs();
-                                tagStatus.setText("Connected");
-                                tagStatusImage.setVisibility(View.GONE);
-                                findViewById(R.id.avSearchingView).setVisibility(View.GONE);
-                                findViewById(R.id.avTrackingView).setVisibility(View.GONE);
-                                findViewById(R.id.avConnectedView).setVisibility(View.VISIBLE);
+//                                animateFabs();
+//                                tagStatus.setText("Connected");
+//                                tagStatusImage.setVisibility(View.GONE);
+//                                findViewById(R.id.avSearchingView).setVisibility(View.GONE);
+//                                findViewById(R.id.avTrackingView).setVisibility(View.GONE);
+//                                findViewById(R.id.avConnectedView).setVisibility(View.VISIBLE);
 
                             }
                         });
@@ -385,6 +385,8 @@ public class MainActivity extends AppCompatActivity {
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
                 new IntentFilter("service-active"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver2,
+                new IntentFilter("nowconnected"));
 
         setIcon("N.A.");
 //        mHandler = new Handler();
@@ -1041,11 +1043,13 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(context, "Tag Connected", Toast.LENGTH_SHORT).show();
 
 
+                Intent intent2 = new Intent("nowconnected");
+                intent2.putExtra("connected","active");
+                LocalBroadcastManager.getInstance(context).sendBroadcast(intent2);
+
                 //Change subrat
 
-                //tagStatus.setText("Connected");
-                //setIcon("Connected");
-                //animateFabs();
+
 
 
 
@@ -1056,6 +1060,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private BroadcastReceiver mMessageReceiver2 = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String message = intent.getStringExtra("connected");
+            if (message.equals("active")) {
+                tagStatus.setText("Connected");
+                setIcon("Connected");
+                animateFabs();
+            }
+        }
+    };
 
     @Override
     protected void onDestroy() {
