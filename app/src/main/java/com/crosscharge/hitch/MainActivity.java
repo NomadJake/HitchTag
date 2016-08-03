@@ -135,10 +135,12 @@ public class MainActivity extends AppCompatActivity {
                 {
 
                     if (!tagList.isEmpty() &&!tagList.get(tagList.size() - 1 ).connected()){
+                        Toast.makeText(MainActivity.this, "Connecting..", Toast.LENGTH_SHORT).show();
                         tagList.get(tagList.size() - 1 ).connect();
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+
 
                                 //remove shubrat
 
@@ -199,7 +201,6 @@ public class MainActivity extends AppCompatActivity {
         findButton=(FloatingActionButton)findViewById(R.id.findbutton);
         trackButton=(FloatingActionButton)findViewById(R.id.trackbutton);
         trainButton=(FloatingActionButton)findViewById(R.id.trainbutton);
-
 
         //Animations
         fab_open = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_open);
@@ -429,9 +430,13 @@ public class MainActivity extends AppCompatActivity {
             if(message.equals("active")){
                 tagStatus.setText("Tracking");
                setIcon("Tracking");
+               // animateFabs();
             }else if(message.equals("stopped")){
-                tagStatus.setText("Stopped");
-                setIcon("Stopped");
+               // tagStatus.setText("Stopped");
+                //setIcon("Stopped");
+                refreshButton.performClick();
+
+
             }else if (message.equals("lost")){
                 tagStatus.setText("Lost");
                 setIcon("N.A.");
@@ -459,33 +464,42 @@ public class MainActivity extends AppCompatActivity {
        else
        {
 
-           if(tagStatus.getText().equals("Connected")||tagStatus.getText().equals("Tracking")||tagStatus.getText().equals("Stopped"))
-           {
+           final Handler handler = new Handler();
+           handler.postDelayed(new Runnable() {
+               @Override
+               public void run() {
+                   //Do something after 1000ms
+                   if(tagStatus.getText().equals("Connected")||tagStatus.getText().equals("Tracking")||tagStatus.getText().equals("Stopped"))
+                   {
 
-               trackButton.startAnimation(fab_open);
-               trackButton.setClickable(true);
-               trainButton.startAnimation(fab_open);
-               trainButton.setClickable(true);
-               findButton.startAnimation(fab_open);
-               findButton.setClickable(true);
-           }
-           else
-           {
-               trackButton.startAnimation(fab_close);
-               trackButton.setClickable(true);
-               trainButton.startAnimation(fab_close);
-               trainButton.setClickable(true);
-               findButton.startAnimation(fab_close);
-               findButton.setClickable(true);
-               runOnUiThread(new Runnable() {
-                   @Override
-                   public void run() {
-                       tagStatus.setText("Searching");
-                       setIcon("Searching");
+                       trackButton.startAnimation(fab_open);
+                       //trackButton.setClickable(true);
+                       trainButton.startAnimation(fab_open);
+                       // trainButton.setClickable(true);
+                       findButton.startAnimation(fab_open);
+                       // findButton.setClickable(true);
                    }
-               });
-               scanLeDevice(true);
-           }
+                   else
+                   {
+                       trackButton.startAnimation(fab_close);
+
+                       trainButton.startAnimation(fab_close);
+                       // trainButton.setClickable(true);
+                       findButton.startAnimation(fab_close);
+                       // findButton.setClickable(true);
+                       runOnUiThread(new Runnable() {
+                           @Override
+                           public void run() {
+                               tagStatus.setText("Searching");
+                               setIcon("Searching");
+                           }
+                       });
+                       scanLeDevice(true);
+                   }
+               }
+           }, 1000);
+
+
 
 
 

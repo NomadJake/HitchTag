@@ -1,5 +1,6 @@
 package com.crosscharge.hitch;
 
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -13,6 +14,7 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -30,6 +32,7 @@ import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Button;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -204,12 +207,13 @@ public class fService extends Service {
             Log.d(TAG, "Received Start Foreground Intent ");
             statusForActivity = 1;
 
-            Intent notificationIntent = new Intent(this, MainActivity.class);
-            notificationIntent.setAction("main");
-            notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                    | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                    notificationIntent, 0);
+
+                Intent notificationIntent = new Intent(this, MainActivity.class);
+                notificationIntent.setAction("main");
+                notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                        | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                        notificationIntent, 0);
 
 
             Intent startTrackingIntent = new Intent(this, fService.class);
@@ -257,7 +261,7 @@ public class fService extends Service {
             builder.setContentText("Tracking Mode : " + mode);
             builder.setSmallIcon(R.drawable.hitchinlogo);
             builder.setLargeIcon(Bitmap.createScaledBitmap(icon, 200, 200, false));
-            builder.setContentIntent(pendingIntent);
+            //builder.setContentIntent(pendingIntent);
             builder.setOngoing(true);
 //            builder.addAction(android.R.drawable.ic_media_play, "start", pMiddleIntent);
             builder.addAction(android.R.drawable.ic_media_pause, "Pause",
@@ -725,5 +729,10 @@ public class fService extends Service {
             e.printStackTrace();
         }
     }
-
+    public boolean isForeground(String myPackage) {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> runningTaskInfo = manager.getRunningTasks(1);
+        ComponentName componentInfo = runningTaskInfo.get(0).topActivity;
+        return componentInfo.getPackageName().equals(myPackage);
+    }
 }
